@@ -1,5 +1,3 @@
-const buble = require('@rollup/plugin-buble');
-
 export default {
   input: 'index.js',
   external: ['d3'],
@@ -9,5 +7,4 @@ export default {
     sourcemap: true,
     globals: { d3: 'd3' },
   },
-  plugins: [buble()],
 };
