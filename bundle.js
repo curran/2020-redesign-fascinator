@@ -1,12 +1,13 @@
 (function (d3) {
   'use strict';
 
+  const dataDir =  `${window.location.origin}/wp-content/themes/stamen-2020/assets/data`
+    ;
+
   const fascinator = d3.select('.fascinator');
   fascinator.style('background', 'red');
 
-  d3.json(
-    `${window.location.origin}/wp-content/themes/stamen-2020/assets/data/sampleWithTags.json`
-  ).then((data) => {
+  d3.json(dataDir + '/sampleWithTags.json').then((data) => {
     fascinator.style('background', 'green');
     console.log(data);
   });
