@@ -1,21 +1,34 @@
 (function (d3) {
   'use strict';
 
-  const app = ({ selection, data, width, height }) => {
-    selection.style('background', data ? 'green' : 'red');
+  const viz = ({ selection, width, height, data }) => {
+    selection
+      .selectAll('circle')
+      .data(data)
+      .join((enter) =>
+        enter
+          .append('circle')
+          .attr('fill', '#ffff00')
+          .attr('r', 30)
+          .attr('cx', () => Math.random() * width)
+          .attr('cy', () => Math.random() * height)
+      );
+  };
+
+  const app = ({ selection, width, height, data }) => {
+    selection.style('background', 'black');
 
     const svg = selection
       .selectAll('svg')
       .data([1])
-      .join(
-        (enter) => enter.append('svg'),
-        (update) => update
-      )
+      .join((enter) => enter.append('svg'))
       .attr('width', width)
       .attr('height', height);
+
+    viz({ selection: svg, width, height, data });
   };
 
-  const dataDir =  '.';
+  const dataDir = '.';
 
   const fascinator = d3.select('.fascinator');
 
@@ -43,6 +56,5 @@
       })),
     });
   });
-
-}(d3));
+})(d3);
 //# sourceMappingURL=bundle.js.map
