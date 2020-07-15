@@ -1,8 +1,7 @@
 (function (d3) {
   'use strict';
 
-  const dataDir =  `${window.location.origin}/wp-content/themes/stamen-2020/assets/data`
-    ;
+  const dataDir = '.';
 
   const fascinator = d3.select('.fascinator');
 
@@ -16,11 +15,20 @@
     console.log(state);
     const { data, width, height } = state;
     fascinator.style('background', data ? 'green' : 'red');
+
+    const svg = fascinator
+      .selectAll('svg')
+      .data([1])
+      .join(
+        (enter) => enter.append('svg'),
+        (update) => update
+      )
+      .attr('width', width)
+      .attr('height', height);
   };
 
   const setDimensions = () => {
     const div = fascinator.node();
-    console.log(div);
     setState({
       width: div.clientWidth,
       height: div.clientHeight,
@@ -35,6 +43,5 @@
       data: data.map((d) => d.acf['go-live_date']),
     });
   });
-
-}(d3));
+})(d3);
 //# sourceMappingURL=bundle.js.map
