@@ -4,7 +4,7 @@
   var React$1__default = 'default' in React$1 ? React$1['default'] : React$1;
   ReactDOM = ReactDOM && Object.prototype.hasOwnProperty.call(ReactDOM, 'default') ? ReactDOM['default'] : ReactDOM;
 
-  var radius = 50;
+  var radius = 100;
 
   var simulation = d3.forceSimulation().force('collide', d3.forceCollide(radius + 3));
 
@@ -16,15 +16,13 @@
 
     if (!data) { return; }
 
-    var circles = selection
-      .selectAll('circle')
+    var nodes = selection
+      .selectAll('image')
       .data(data)
       .join(function (enter) { return enter
-          .append('circle')
-          .attr('fill', '#ffff00')
-          .attr('r', radius)
-          .attr('cx', function () { return Math.random() * width; })
-          .attr('cy', function () { return Math.random() * height; }); }
+          .append('image')
+          .attr('href', function (d) { return d.thumbnailURL; })
+          .attr('height', radius); }
       );
 
     simulation.nodes(data);
@@ -34,7 +32,9 @@
       .force('x', d3.forceX(width / 2).strength(0.05))
       //.force('x', forceX((d) => xScale(xValue(d))).strength(1))
       .on('tick', function () {
-        circles.attr('cx', function (d) { return d.x; }).attr('cy', function (d) { return d.y; });
+        nodes
+          .attr('x', function (d) { return d.x - radius / 2; })
+          .attr('y', function (d) { return d.y - radius / 2; });
       });
   };
 
@@ -51,7 +51,7 @@
         setData(
           rawData.map(function (d) { return ({
             date: d.acf['go-live_date'],
-            thumbnailURL: d.acf.thumbnail_image
+            thumbnailURL: d.acf.thumbnail_image,
           }); })
         );
       });
