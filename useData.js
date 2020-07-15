@@ -12,10 +12,11 @@ export const useData = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    json(dataDir + '/sampleWithTags.json').then((data) => {
+    json(dataDir + '/sampleWithTags.json').then((rawData) => {
       setData(
-        data.map((d) => ({
+        rawData.map((d) => ({
           date: d.acf['go-live_date'],
+          thumbnailURL: d.acf.thumbnail_image
         }))
       );
     });

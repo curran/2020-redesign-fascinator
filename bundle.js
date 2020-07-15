@@ -47,10 +47,11 @@
     var setData = ref[1];
 
     React$1.useEffect(function () {
-      d3.json(dataDir + '/sampleWithTags.json').then(function (data) {
+      d3.json(dataDir + '/sampleWithTags.json').then(function (rawData) {
         setData(
-          data.map(function (d) { return ({
+          rawData.map(function (d) { return ({
             date: d.acf['go-live_date'],
+            thumbnailURL: d.acf.thumbnail_image
           }); })
         );
       });
