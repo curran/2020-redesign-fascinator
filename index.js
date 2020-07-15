@@ -2,7 +2,7 @@ import { select, json } from 'd3';
 import { app } from './app';
 
 // Set this to true to build for production, false during development.
-const isProd = false;
+const isProd = true;
 
 const dataDir = isProd
   ? `${window.location.origin}/wp-content/themes/stamen-2020/assets/data`
