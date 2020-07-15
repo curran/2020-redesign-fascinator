@@ -1,23 +1,30 @@
-(function (d3) {
+(function (React$1, ReactDOM, d3) {
   'use strict';
 
-  const radius = 50;
+  var React$1__default = 'default' in React$1 ? React$1['default'] : React$1;
+  ReactDOM = ReactDOM && Object.prototype.hasOwnProperty.call(ReactDOM, 'default') ? ReactDOM['default'] : ReactDOM;
 
-  const simulation = d3.forceSimulation().force('collide', d3.forceCollide(radius + 3));
+  var radius = 50;
 
-  const viz = ({ selection, width, height, data }) => {
-    if (!data) return;
+  var simulation = d3.forceSimulation().force('collide', d3.forceCollide(radius + 3));
 
-    const circles = selection
+  var viz = function (ref) {
+    var selection = ref.selection;
+    var width = ref.width;
+    var height = ref.height;
+    var data = ref.data;
+
+    if (!data) { return; }
+
+    var circles = selection
       .selectAll('circle')
       .data(data)
-      .join((enter) =>
-        enter
+      .join(function (enter) { return enter
           .append('circle')
           .attr('fill', '#ffff00')
           .attr('r', radius)
-          .attr('cx', () => Math.random() * width)
-          .attr('cy', () => Math.random() * height)
+          .attr('cx', function () { return Math.random() * width; })
+          .attr('cy', function () { return Math.random() * height; }); }
       );
 
     simulation.nodes(data);
@@ -26,53 +33,71 @@
       .force('y', d3.forceY(height / 2).strength(1))
       .force('x', d3.forceX(width / 2).strength(0.05))
       //.force('x', forceX((d) => xScale(xValue(d))).strength(1))
-      .on('tick', () => {
-        circles.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+      .on('tick', function () {
+        circles.attr('cx', function (d) { return d.x; }).attr('cy', function (d) { return d.y; });
       });
   };
 
-  const app = ({ selection, width, height, data }) => {
-    selection.style('background', 'black');
-
-    const svg = selection
-      .selectAll('svg')
-      .data([1])
-      .join((enter) => enter.append('svg'))
-      .attr('width', width)
-      .attr('height', height);
-
-    viz({ selection: svg, width, height, data });
-  };
-
-  const dataDir =  `${window.location.origin}/wp-content/themes/stamen-2020/assets/data`
+  var dataDir =  ((window.location.origin) + "/wp-content/themes/stamen-2020/assets/data")
     ;
 
-  const fascinator = d3.select('.fascinator');
+  var useData = function () {
+    var ref = React$1.useState(null);
+    var data = ref[0];
+    var setData = ref[1];
 
-  let state = {};
-  const setState = (newState) => {
-    state = { ...state, ...newState };
-    app({ ...state, selection: fascinator });
+    React$1.useEffect(function () {
+      d3.json(dataDir + '/sampleWithTags.json').then(function (data) {
+        setData(
+          data.map(function (d) { return ({
+            date: d.acf['go-live_date'],
+          }); })
+        );
+      });
+    }, []);
+
+    return data;
   };
 
-  const setDimensions = () => {
-    const div = fascinator.node();
-    setState({
-      width: div.clientWidth,
-      height: div.clientHeight,
-    });
+  var fascinator = d3.select('.fascinator')
+    .style('background-color', 'black')
+    .node();
+
+  var useDimensions = function () {
+    var ref = React$1.useState({});
+    var dimensions = ref[0];
+    var setDimensions = ref[1];
+
+    React$1.useEffect(function () {
+      var updateDimensions = function () {
+        setDimensions({
+          width: fascinator.clientWidth,
+          height: fascinator.clientHeight,
+        });
+      };
+      updateDimensions();
+      window.addEventListener('resize', updateDimensions);
+      return function () { return window.removeEventListener('resize', updateDimensions); };
+    }, []);
+
+    return dimensions;
   };
 
-  setDimensions();
-  window.addEventListener('resize', setDimensions);
+  var App = function () {
+    var ref = React$1.useRef();
+    var data = useData();
+    var ref$1 = useDimensions();
+    var width = ref$1.width;
+    var height = ref$1.height;
 
-  d3.json(dataDir + '/sampleWithTags.json').then((data) => {
-    setState({
-      data: data.map((d) => ({
-        date: d.acf['go-live_date'],
-      })),
-    });
-  });
+    React$1.useEffect(function () {
+      viz({ selection: d3.select(ref.current), width: width, height: height, data: data });
+    }, [width, height, data]);
 
-}(d3));
+    return React.createElement( 'svg', { ref: ref, width: width, height: height });
+  };
+
+  ReactDOM.render(React$1__default.createElement( App, null ), fascinator);
+
+}(React, ReactDOM, d3));
 //# sourceMappingURL=bundle.js.map
