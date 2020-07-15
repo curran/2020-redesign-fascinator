@@ -1,22 +1,10 @@
 (function (d3) {
   'use strict';
 
-  const dataDir = '.';
+  const app = ({ selection, data, width, height }) => {
+    selection.style('background', data ? 'green' : 'red');
 
-  const fascinator = d3.select('.fascinator');
-
-  let state = {};
-  const setState = (newState) => {
-    state = { ...state, ...newState };
-    render();
-  };
-
-  const render = () => {
-    console.log(state);
-    const { data, width, height } = state;
-    fascinator.style('background', data ? 'green' : 'red');
-
-    const svg = fascinator
+    const svg = selection
       .selectAll('svg')
       .data([1])
       .join(
@@ -25,6 +13,16 @@
       )
       .attr('width', width)
       .attr('height', height);
+  };
+
+  const dataDir =  '.';
+
+  const fascinator = d3.select('.fascinator');
+
+  let state = {};
+  const setState = (newState) => {
+    state = { ...state, ...newState };
+    app({ ...state, selection: fascinator });
   };
 
   const setDimensions = () => {
@@ -40,8 +38,11 @@
 
   d3.json(dataDir + '/sampleWithTags.json').then((data) => {
     setState({
-      data: data.map((d) => d.acf['go-live_date']),
+      data: data.map((d) => ({
+        date: d.acf['go-live_date'],
+      })),
     });
   });
-})(d3);
+
+}(d3));
 //# sourceMappingURL=bundle.js.map
