@@ -16,7 +16,7 @@ export const useData = () => {
       setData(
         rawData.map((d) => ({
           date: d.acf['go-live_date'],
-          thumbnailURL: d.acf.thumbnail_image
+          thumbnailURL: d.acf.thumbnail_image,
         }))
       );
     });
