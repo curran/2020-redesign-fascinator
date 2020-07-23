@@ -5,8 +5,8 @@ import { json } from 'd3';
 const isProd = false;
 
 const dataDir = isProd
-  ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/sampleWithTags.json'
-  : '.';
+  ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
+  : '/data';
 
 export const useData = () => {
   const [data, setData] = useState(null);

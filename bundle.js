@@ -38,7 +38,7 @@
       });
   };
 
-  var dataDir =  '.';
+  var dataDir =  '/data';
 
   var useData = function () {
     var ref = React$1.useState(null);
