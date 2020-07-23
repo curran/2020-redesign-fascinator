@@ -1,7 +1,7 @@
 import buble from '@rollup/plugin-buble';
 
 export default {
-  input: 'index.js',
+  input: 'src/index.js',
   external: ['d3'],
   output: {
     file: 'bundle.js',
