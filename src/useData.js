@@ -8,6 +8,8 @@ const dataDir = isProd
   ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
   : '/data';
 
+const thumbnailify = (url) => url.replace('.png', '-150x150.png');
+
 export const useData = () => {
   const [data, setData] = useState(null);
 
@@ -16,7 +18,7 @@ export const useData = () => {
       setData(
         rawData.map((d) => ({
           date: d.go_live_date,
-          thumbnailURL: d.thumbnail_image,
+          thumbnailURL: thumbnailify(d.thumbnail_image),
         }))
       );
     });
