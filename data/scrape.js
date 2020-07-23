@@ -1,4 +1,4 @@
 import fs from 'fs';
+import fetch from 'node-fetch';
 
-
-console.log(fs);
+console.log(fetch);
