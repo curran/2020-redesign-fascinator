@@ -41,6 +41,8 @@
   var dataDir =  'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
     ;
 
+  var thumbnailify = function (url) { return url.replace('.png', '-150x150.png'); };
+
   var useData = function () {
     var ref = React$1.useState(null);
     var data = ref[0];
@@ -51,7 +53,7 @@
         setData(
           rawData.map(function (d) { return ({
             date: d.go_live_date,
-            thumbnailURL: d.thumbnail_image,
+            thumbnailURL: thumbnailify(d.thumbnail_image),
           }); })
         );
       });
