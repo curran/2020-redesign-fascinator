@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { json } from 'd3';
 
 // Set this to true to build for production, false during development.
-const isProd = true;
+const isProd = false;
 
 const dataDir = isProd
-  ? `${window.location.origin}/wp-content/themes/stamen-2020/assets/data`
+  ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/sampleWithTags.json'
   : '.';
 
 export const useData = () => {
@@ -15,8 +15,8 @@ export const useData = () => {
     json(dataDir + '/sampleWithTags.json').then((rawData) => {
       setData(
         rawData.map((d) => ({
-          date: d.acf['go-live_date'],
-          thumbnailURL: d.acf.thumbnail_image,
+          date: d.go_live_date,
+          thumbnailURL: d.thumbnail_image,
         }))
       );
     });

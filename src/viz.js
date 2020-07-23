@@ -1,6 +1,6 @@
 import { forceSimulation, forceX, forceY, forceCollide } from 'd3';
 
-const radius = 100;
+const radius = 50;
 
 const simulation = forceSimulation().force('collide', forceCollide(radius + 3));
 

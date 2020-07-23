@@ -9,7 +9,7 @@
     "watch": "rollup -c -w",
     "dev": "npm-run-all --parallel start watch",
     "start": "serve .",
-    "prettier": "prettier --single-quote --write '**/*.js'"
+    "prettier": "prettier --single-quote --write '**/*.js' '*.js'"
   },
   "repository": {
     "type": "git",

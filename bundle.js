@@ -4,7 +4,7 @@
   var React$1__default = 'default' in React$1 ? React$1['default'] : React$1;
   ReactDOM = ReactDOM && Object.prototype.hasOwnProperty.call(ReactDOM, 'default') ? ReactDOM['default'] : ReactDOM;
 
-  var radius = 100;
+  var radius = 50;
 
   var simulation = d3.forceSimulation().force('collide', d3.forceCollide(radius + 3));
 
@@ -38,8 +38,7 @@
       });
   };
 
-  var dataDir =  ((window.location.origin) + "/wp-content/themes/stamen-2020/assets/data")
-    ;
+  var dataDir =  '.';
 
   var useData = function () {
     var ref = React$1.useState(null);
@@ -50,8 +49,8 @@
       d3.json(dataDir + '/sampleWithTags.json').then(function (rawData) {
         setData(
           rawData.map(function (d) { return ({
-            date: d.acf['go-live_date'],
-            thumbnailURL: d.acf.thumbnail_image,
+            date: d.go_live_date,
+            thumbnailURL: d.thumbnail_image,
           }); })
         );
       });
