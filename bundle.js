@@ -38,7 +38,8 @@
       });
   };
 
-  var dataDir =  '/data';
+  var dataDir =  'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
+    ;
 
   var useData = function () {
     var ref = React$1.useState(null);
