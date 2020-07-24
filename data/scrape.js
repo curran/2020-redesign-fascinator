@@ -42,11 +42,10 @@ const main = async () => {
 
         console.log(`scraped image ${i++} of ${wordpressListing.length}.`);
 
-        // Scale down the image to fill a squared,
+        // Scale down the image to fill a square,
         // centered at the center of the original image.
         // Draws from:
         // https://riptutorial.com/html5-canvas/example/19169/scaling-image-to-fit-or-fill-
-        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
         const { width, height } = image;
         const scale = Math.max(size / width, size / height);
         const dx = size / 2 - (width / 2) * scale;
@@ -54,6 +53,9 @@ const main = async () => {
         const dWidth = width * scale;
         const dHeight = height * scale;
 
+        // Create a Canvas and draw the image to it.
+        // Docs:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
         const canvas = createCanvas(size, size);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(image, dx, dy, dWidth, dHeight);
