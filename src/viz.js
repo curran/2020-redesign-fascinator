@@ -12,8 +12,6 @@ import { size } from './constants';
 
 const simulation = forceSimulation().force('collide', forceCollide(size / 2));
 
-console.log(size);
-
 const xValue = (d) => d.date;
 
 const margin = { left: 100, right: 100 };

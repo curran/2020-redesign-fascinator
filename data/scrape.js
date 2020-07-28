@@ -1,7 +1,7 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
 import { createCanvas, loadImage } from 'canvas';
-import { size } from '../src/constants';
+import { size, isProd } from '../src/constants';
 
 // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
 const radius = size / 2 - 2;
@@ -13,9 +13,6 @@ const outputFile = 'data/fascinatorData.json';
 const wordpressListingURL =
   'https://stamenstaging.wpengine.com/wp-json/viz/v1/post';
 
-// In development, it's convenient to only run the code over 2 entries.
-const isDev = false;
-
 // Fetches and parses the listing from the WordPress API endpoint.
 const fetchWordpressListing = async () => {
   const response = await fetch(wordpressListingURL);
@@ -26,7 +23,8 @@ const fetchWordpressListing = async () => {
 const main = async () => {
   let wordpressListing = await fetchWordpressListing();
 
-  if (isDev) {
+  // In development, it's convenient to only run the code over 2 entries.
+  if (!isProd) {
     wordpressListing = wordpressListing.slice(0, 2);
   }
 
