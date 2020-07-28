@@ -7,11 +7,11 @@
       ? ReactDOM['default']
       : ReactDOM;
 
-  var radius = 50;
+  var size = 50;
 
   var simulation = d3
     .forceSimulation()
-    .force('collide', d3.forceCollide(radius + 3));
+    .force('collide', d3.forceCollide(size + 3));
 
   var viz = function (ref) {
     var selection = ref.selection;
@@ -30,9 +30,9 @@
         return enter
           .append('image')
           .attr('href', function (d) {
-            return d.thumbnailURL;
+            return d.thumbnailDataURL;
           })
-          .attr('height', radius);
+          .attr('height', size);
       });
 
     simulation.nodes(data);
@@ -44,19 +44,20 @@
       .on('tick', function () {
         nodes
           .attr('x', function (d) {
-            return d.x - radius / 2;
+            return d.x - size / 2;
           })
           .attr('y', function (d) {
-            return d.y - radius / 2;
+            return d.y - size / 2;
           });
       });
   };
 
   var dataDir =
     'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data';
-  var thumbnailify = function (url) {
-    return url.replace('.png', '-150x150.png');
-  };
+  // This is the output from running data/scrape.js.
+  var dataFile = 'fascinatorData.json';
+
+  var parseDate = d3.timeParse('%m/%d/%Y');
 
   var useData = function () {
     var ref = React$1.useState(null);
@@ -64,13 +65,10 @@
     var setData = ref[1];
 
     React$1.useEffect(function () {
-      d3.json(dataDir + '/sampleWithTags.json').then(function (rawData) {
+      d3.json(dataDir + '/' + dataFile).then(function (rawData) {
         setData(
           rawData.map(function (d) {
-            return {
-              date: d.go_live_date,
-              thumbnailURL: thumbnailify(d.thumbnail_image),
-            };
+            return Object.assign({}, d, { date: parseDate(d.go_live_date) });
           })
         );
       });
