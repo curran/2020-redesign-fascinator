@@ -13,6 +13,12 @@
     .forceSimulation()
     .force('collide', d3.forceCollide(size + 3));
 
+  var xValue = function (d) {
+    return d.date;
+  };
+
+  var margin = { left: 100, right: 100 };
+
   var viz = function (ref) {
     var selection = ref.selection;
     var width = ref.width;
@@ -37,10 +43,22 @@
 
     simulation.nodes(data);
 
+    var innerWidth = width - margin.left - margin.right;
+    var xScale = d3
+      .scaleTime()
+      .domain(d3.extent(data, xValue))
+      .range([margin.left, innerWidth]);
+
     simulation
       .force('y', d3.forceY(height / 2).strength(1))
-      .force('x', d3.forceX(width / 2).strength(0.05))
-      //.force('x', forceX((d) => xScale(xValue(d))).strength(1))
+      .force(
+        'x',
+        d3
+          .forceX(function (d) {
+            return xScale(xValue(d));
+          })
+          .strength(0.5)
+      )
       .on('tick', function () {
         nodes
           .attr('x', function (d) {
