@@ -21,8 +21,11 @@ const marks = ({ selection, height, data, xScale, xValue }) => {
   simulation.nodes(data);
 
   simulation
-    .force('y', forceY(height / 2).strength(1))
-    .force('x', forceX((d) => xScale(xValue(d))).strength(0.5))
+    .force('y', forceY(height / 2))
+    .force(
+      'x',
+      forceX((d) => xScale(xValue(d)))
+    )
     .on('tick', () => {
       nodes.attr('x', (d) => d.x - size / 2).attr('y', (d) => d.y - size / 2);
     });

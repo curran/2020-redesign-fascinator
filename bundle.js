@@ -7,7 +7,8 @@
   // The images generated are ${size}px by ${size}px;
   var size = 70;
 
-  var dataDir =  '/data';
+  var dataDir =  'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
+    ;
 
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';
@@ -55,6 +56,10 @@
     return dimensions;
   };
 
+  var yearFormat = d3.timeFormat('%Y');
+
+  var tickLabelYOffset = 20;
+
   var Axis = function (ref) {
     var height = ref.height;
     var xScale = ref.xScale;
@@ -62,11 +67,20 @@
     return (
       React.createElement( 'g', null,
         xScale.ticks().map(function (d) {
-
           // Get exactly 1px wide lines that fall on the pixel exactly.
           var x = Math.round(xScale(d)) + 0.5;
 
-          return React.createElement( 'line', { key: d, x1: x, y1: 0, x2: x, y2: height, stroke: "white" });
+          var label = yearFormat(d);
+
+          return (
+            React.createElement( 'g', { key: label, transform: ("translate(" + x + ",0)") },
+              React.createElement( 'line', { y2: height - tickLabelYOffset * 2, stroke: "white" }),
+              React.createElement( 'text', {
+                y: height - tickLabelYOffset, textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "20px", fill: "white" },
+                label
+              )
+            )
+          );
         })
       )
     );
@@ -94,8 +108,11 @@
     simulation.nodes(data);
 
     simulation
-      .force('y', d3.forceY(height / 2).strength(1))
-      .force('x', d3.forceX(function (d) { return xScale(xValue(d)); }).strength(0.5))
+      .force('y', d3.forceY(height / 2))
+      .force(
+        'x',
+        d3.forceX(function (d) { return xScale(xValue(d)); })
+      )
       .on('tick', function () {
         nodes.attr('x', function (d) { return d.x - size / 2; }).attr('y', function (d) { return d.y - size / 2; });
       });
@@ -119,7 +136,7 @@
 
   var xValue = function (d) { return d.date; };
 
-  var margin = { left: 100, right: 100 };
+  var margin = { left: 100, right: 200 };
 
   var Viz = function (ref) {
     var width = ref.width;
@@ -128,15 +145,15 @@
 
     var xScale = React$1.useMemo(function () {
       var innerWidth = width - margin.left - margin.right;
-      return d3.scaleTime()
-        .domain(d3.extent(data, xValue))
-        .range([margin.left, innerWidth]);
+      return d3.scaleTime().domain(d3.extent(data, xValue)).range([0, innerWidth]);
     }, [data, innerWidth]);
 
     return (
       React.createElement( 'svg', { width: width, height: height },
-        React.createElement( Axis, { height: height, xScale: xScale }),
-        React.createElement( Marks, { data: data, height: height, xScale: xScale, xValue: xValue })
+        React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
+          React.createElement( Axis, { height: height, xScale: xScale }),
+          React.createElement( Marks, { data: data, height: height, xScale: xScale, xValue: xValue })
+        )
       )
     );
   };
