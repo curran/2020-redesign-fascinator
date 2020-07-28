@@ -7,9 +7,12 @@ import {
   extent,
 } from 'd3';
 
-const size = 50;
+// Use the same size as the images, no client-side resampling.
+import { size } from './constants';
 
-const simulation = forceSimulation().force('collide', forceCollide(size + 3));
+const simulation = forceSimulation().force('collide', forceCollide(size / 2));
+
+console.log(size);
 
 const xValue = (d) => d.date;
 

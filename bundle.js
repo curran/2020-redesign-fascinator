@@ -7,11 +7,14 @@
       ? ReactDOM['default']
       : ReactDOM;
 
-  var size = 50;
+  // The images generated are ${size}px by ${size}px;
+  var size = 70;
 
   var simulation = d3
     .forceSimulation()
-    .force('collide', d3.forceCollide(size + 3));
+    .force('collide', d3.forceCollide(size / 2));
+
+  console.log(size);
 
   var xValue = function (d) {
     return d.date;
@@ -70,8 +73,8 @@
       });
   };
 
-  var dataDir =
-    'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data';
+  var dataDir = '/data';
+
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';
 

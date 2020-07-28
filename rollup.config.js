@@ -12,6 +12,7 @@ export default {
   plugins: [
     buble({
       objectAssign: 'Object.assign',
+      transforms: { asyncAwait: false },
     }),
   ],
 };

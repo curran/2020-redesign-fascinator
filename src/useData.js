@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { json, timeParse } from 'd3';
 
 // Set this to true to build for production, false during development.
-const isProd = true;
+const isProd = false;
 
 const dataDir = isProd
   ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
