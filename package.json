@@ -27,6 +27,7 @@
     "buble": "^0.20.0",
     "canvas": "^2.6.1",
     "eslint": "^7.5.0",
+    "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-react": "^7.20.5",
     "esm": "^3.2.25",
     "node-fetch": "^2.6.0",
