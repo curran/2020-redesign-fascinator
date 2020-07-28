@@ -1,5 +1,6 @@
 import { extent, scaleTime } from 'd3';
 import { useMemo } from 'react';
+import { Axis } from './Axis';
 import { Marks } from './Marks';
 
 const xValue = (d) => d.date;
@@ -16,6 +17,7 @@ export const Viz = ({ width, height, data }) => {
 
   return (
     <svg width={width} height={height}>
+      <Axis height={height} xScale={xScale} />
       <Marks data={data} height={height} xScale={xScale} xValue={xValue} />
     </svg>
   );

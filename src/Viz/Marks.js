@@ -34,7 +34,7 @@ export const Marks = ({ height, data, xScale, xValue }) => {
   useEffect(() => {
     const selection = select(ref.current);
     marks({ selection, height, data, xScale, xValue });
-  }, [data]);
+  }, [height, data, xScale, xValue]);
 
   return <g ref={ref} />;
 };

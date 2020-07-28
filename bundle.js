@@ -55,6 +55,23 @@
     return dimensions;
   };
 
+  var Axis = function (ref) {
+    var height = ref.height;
+    var xScale = ref.xScale;
+
+    return (
+      React.createElement( 'g', null,
+        xScale.ticks().map(function (d) {
+
+          // Get exactly 1px wide lines that fall on the pixel exactly.
+          var x = Math.round(xScale(d)) + 0.5;
+
+          return React.createElement( 'line', { key: d, x1: x, y1: 0, x2: x, y2: height, stroke: "white" });
+        })
+      )
+    );
+  };
+
   var simulation = d3.forceSimulation().force('collide', d3.forceCollide(size / 2));
 
   // This is the portion where D3 takes over DOM manipulation.
@@ -95,7 +112,7 @@
     React$1.useEffect(function () {
       var selection = d3.select(ref.current);
       marks({ selection: selection, height: height, data: data, xScale: xScale, xValue: xValue });
-    }, [data]);
+    }, [height, data, xScale, xValue]);
 
     return React.createElement( 'g', { ref: ref });
   };
@@ -118,6 +135,7 @@
 
     return (
       React.createElement( 'svg', { width: width, height: height },
+        React.createElement( Axis, { height: height, xScale: xScale }),
         React.createElement( Marks, { data: data, height: height, xScale: xScale, xValue: xValue })
       )
     );
