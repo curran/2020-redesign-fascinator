@@ -1,22 +1,11 @@
-import {
-  forceSimulation,
-  forceX,
-  forceY,
-  forceCollide,
-  scaleTime,
-  extent,
-} from 'd3';
+import { forceSimulation, forceX, forceY, forceCollide } from 'd3';
 
 // Use the same size as the images, no client-side resampling.
-import { size } from './constants';
+import { size } from '../constants';
 
 const simulation = forceSimulation().force('collide', forceCollide(size / 2));
 
-const xValue = (d) => d.date;
-
-const margin = { left: 100, right: 100 };
-
-export const viz = ({ selection, width, height, data }) => {
+export const marks = ({ selection, height, data, xScale, xValue }) => {
   if (!data) return;
 
   const nodes = selection
@@ -30,11 +19,6 @@ export const viz = ({ selection, width, height, data }) => {
     );
 
   simulation.nodes(data);
-
-  const innerWidth = width - margin.left - margin.right;
-  const xScale = scaleTime()
-    .domain(extent(data, xValue))
-    .range([margin.left, innerWidth]);
 
   simulation
     .force('y', forceY(height / 2).strength(1))
