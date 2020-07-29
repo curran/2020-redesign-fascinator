@@ -2,13 +2,15 @@
   'use strict';
 
   var React$1__default = 'default' in React$1 ? React$1['default'] : React$1;
-  ReactDOM = ReactDOM && Object.prototype.hasOwnProperty.call(ReactDOM, 'default') ? ReactDOM['default'] : ReactDOM;
+  ReactDOM = ReactDOM && ReactDOM.hasOwnProperty('default') ? ReactDOM['default'] : ReactDOM;
 
   // The images generated are ${size}px by ${size}px;
   var size = 70;
 
-  var dataDir =  'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@master/data'
-    ;
+  // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
+  var radius = size / 2 - 2;
+
+  var dataDir =  '/data';
 
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';
@@ -91,7 +93,10 @@
     );
   };
 
-  var simulation = d3.forceSimulation().force('collide', d3.forceCollide(size / 2));
+  // Factor to multiply the size by for hovered entry.
+  var enlargement = 1.5;
+
+  var simulation = d3.forceSimulation();
 
   // This is the portion where D3 takes over DOM manipulation.
   var marks = function (ref) {
@@ -102,17 +107,51 @@
     var xValue = ref.xValue;
     var onMouseEnter = ref.onMouseEnter;
     var onMouseLeave = ref.onMouseLeave;
+    var hoveredEntry = ref.hoveredEntry;
 
-    var nodes = selection
-      .selectAll('image')
-      .data(data)
-      .join(function (enter) { return enter
-          .append('image')
-          .attr('href', function (d) { return d.thumbnailDataURL; })
-          .attr('height', size)
-          .on('mouseenter', function (d) { return onMouseEnter(d); })
-          .on('mouseleave', onMouseLeave); }
-      );
+    // Each node has a parent group that listens for mouse events.
+    var nodesUpdate = selection.selectAll('.node').data(data);
+    var nodesEnter = nodesUpdate
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .on('mouseenter', function (d) { return onMouseEnter(d); })
+      .on('mouseleave', onMouseLeave);
+    var nodes = nodesUpdate.merge(nodesEnter);
+
+    // Each parent group contains an image.
+    var imagesUpdate = nodes.select('image');
+    var imagesEnter = nodesEnter
+      .append('image')
+      .attr('href', function (d) { return d.thumbnailDataURL; });
+    imagesUpdate
+      .merge(imagesEnter)
+      .attr('height', function (d) { return (d === hoveredEntry ? size * enlargement : size); })
+      .attr('width', function (d) { return (d === hoveredEntry ? size * enlargement : size); });
+
+    // Each parent group contains a link that opens the work page.
+    var linksUpdate = nodesUpdate.select('a');
+    var linksEnter = nodesEnter
+      .append('a')
+      .attr('href', function (d) { return ((window.location.origin) + "/work/" + (d.post_name)); })
+      .attr('target', '_blank')
+      .attr('rel', 'noopener noreferrer')
+      .style('pointer-events', 'all');
+
+    // Each link contains a circle that intercepts mouse events
+    // and provides the stroke around the circularly masked images.
+    var circlesUpdate = linksUpdate.select('circle');
+    var circlesEnter = linksEnter.append('circle').attr('fill', 'none');
+    circlesUpdate
+      .merge(circlesEnter)
+      .attr('stroke', function (d) { return (d === hoveredEntry ? 'yellow' : 'white'); })
+      .attr('r', function (d) { return (d === hoveredEntry ? radius * enlargement : radius); });
+
+    // Update the collide force to know about the hovered entry.
+    simulation.force(
+      'collide',
+      d3.forceCollide(function (d) { return (d === hoveredEntry ? radius * enlargement : radius); })
+    );
 
     simulation.nodes(data);
 
@@ -123,7 +162,7 @@
         d3.forceX(function (d) { return xScale(xValue(d)); })
       )
       .on('tick', function () {
-        nodes.attr('x', function (d) { return d.x - size / 2; }).attr('y', function (d) { return d.y - size / 2; });
+        nodes.attr('transform', function (d) { return ("translate(" + (d.x) + "," + (d.y) + ")"); });
       });
   };
 
@@ -134,6 +173,7 @@
     var xValue = ref$1.xValue;
     var onMouseEnter = ref$1.onMouseEnter;
     var onMouseLeave = ref$1.onMouseLeave;
+    var hoveredEntry = ref$1.hoveredEntry;
 
     var ref = React$1.useRef();
 
@@ -147,8 +187,9 @@
         xValue: xValue,
         onMouseEnter: onMouseEnter,
         onMouseLeave: onMouseLeave,
+        hoveredEntry: hoveredEntry,
       });
-    }, [height, data, xScale, xValue]);
+    }, [height, data, xScale, xValue, hoveredEntry, onMouseEnter, onMouseLeave]);
 
     return React.createElement( 'g', { ref: ref });
   };
@@ -165,7 +206,7 @@
     var xScale = React$1.useMemo(function () {
       var innerWidth = width - margin.left - margin.right;
       return d3.scaleTime().domain(d3.extent(data, xValue)).range([0, innerWidth]);
-    }, [data, innerWidth]);
+    }, [data, width]);
 
     var ref$1 = React$1.useState(null);
     var hoveredEntry = ref$1[0];
@@ -187,7 +228,7 @@
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, { height: height, xValue: xValue, hoveredEntry: hoveredEntry }),
           React.createElement( Marks, {
-            data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave })
+            data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry })
         )
       )
     );

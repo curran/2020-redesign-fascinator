@@ -11,7 +11,7 @@ export const Viz = ({ width, height, data }) => {
   const xScale = useMemo(() => {
     const innerWidth = width - margin.left - margin.right;
     return scaleTime().domain(extent(data, xValue)).range([0, innerWidth]);
-  }, [data, innerWidth]);
+  }, [data, width]);
 
   const [hoveredEntry, setHoveredEntry] = useState(null);
 
@@ -37,6 +37,7 @@ export const Viz = ({ width, height, data }) => {
           xValue={xValue}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          hoveredEntry={hoveredEntry}
         />
       </g>
     </svg>
