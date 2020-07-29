@@ -1,10 +1,7 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
 import { createCanvas, loadImage } from 'canvas';
-import { size, isProd } from '../src/constants';
-
-// Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
-const radius = size / 2 - 2;
+import { size, radius, isProd } from '../src/constants';
 
 // The file to write out to.
 const outputFile = 'data/fascinatorData.json';
@@ -70,12 +67,6 @@ const main = async () => {
         ctx.drawImage(image, dx, dy, dWidth, dHeight);
 
         ctx.restore();
-
-        // Draw the white outline around the image.
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2, false);
-        ctx.strokeStyle = 'white';
-        ctx.stroke();
 
         // Base64-encode the image.
         // Docs:

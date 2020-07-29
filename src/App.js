@@ -1,5 +1,3 @@
-import { select } from 'd3';
-import { useRef, useEffect, useState } from 'react';
 import { useData } from './useData';
 import { useDimensions } from './useDimensions';
 import { Viz } from './Viz';
