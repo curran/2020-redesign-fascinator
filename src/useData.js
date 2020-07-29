@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { json, timeParse } from 'd3';
-import { isProd } from './constants';
+import { isProd, version } from './constants';
 
 const dataDir = isProd
-  ? 'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@1.3.0/data'
+  ? `https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@${version}/data`
   : '/data';
 
 // This is the output from running data/scrape.js.
