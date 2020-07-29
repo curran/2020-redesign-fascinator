@@ -4,7 +4,7 @@ const yearFormat = timeFormat('%Y');
 
 const tickLabelYOffset = 20;
 
-export const Axis = ({ height, xScale }) => {
+export const Tooltip = ({ height, xScale }) => {
   return (
     <g>
       {xScale.ticks().map((d) => {

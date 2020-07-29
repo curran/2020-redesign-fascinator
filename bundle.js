@@ -60,7 +60,7 @@
 
   var tickLabelYOffset = 20;
 
-  var Axis = function (ref) {
+  var Tooltip = function (ref) {
     var height = ref.height;
     var xScale = ref.xScale;
 
@@ -95,6 +95,8 @@
     var data = ref.data;
     var xScale = ref.xScale;
     var xValue = ref.xValue;
+    var onMouseEnter = ref.onMouseEnter;
+    var onMouseLeave = ref.onMouseLeave;
 
     var nodes = selection
       .selectAll('image')
@@ -102,7 +104,9 @@
       .join(function (enter) { return enter
           .append('image')
           .attr('href', function (d) { return d.thumbnailDataURL; })
-          .attr('height', size); }
+          .attr('height', size)
+          .on('mouseenter', function (d) { return onMouseEnter(d); })
+          .on('mouseleave', onMouseLeave); }
       );
 
     simulation.nodes(data);
@@ -123,12 +127,22 @@
     var data = ref$1.data;
     var xScale = ref$1.xScale;
     var xValue = ref$1.xValue;
+    var onMouseEnter = ref$1.onMouseEnter;
+    var onMouseLeave = ref$1.onMouseLeave;
 
     var ref = React$1.useRef();
 
     React$1.useEffect(function () {
       var selection = d3.select(ref.current);
-      marks({ selection: selection, height: height, data: data, xScale: xScale, xValue: xValue });
+      marks({
+        selection: selection,
+        height: height,
+        data: data,
+        xScale: xScale,
+        xValue: xValue,
+        onMouseEnter: onMouseEnter,
+        onMouseLeave: onMouseLeave,
+      });
     }, [height, data, xScale, xValue]);
 
     return React.createElement( 'g', { ref: ref });
@@ -148,11 +162,29 @@
       return d3.scaleTime().domain(d3.extent(data, xValue)).range([0, innerWidth]);
     }, [data, innerWidth]);
 
+    var ref$1 = React$1.useState(null);
+    var hoveredEntry = ref$1[0];
+    var setHoveredEntry = ref$1[1];
+
+    var handleMouseEnter = React$1.useCallback(
+      function (d) {
+        setHoveredEntry(d);
+      },
+      [setHoveredEntry]
+    );
+
+    var handleMouseLeave = React$1.useCallback(function () {
+      setHoveredEntry(null);
+    }, [setHoveredEntry]);
+
+    console.log(hoveredEntry);
+
     return (
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
-          React.createElement( Axis, { height: height, xScale: xScale }),
-          React.createElement( Marks, { data: data, height: height, xScale: xScale, xValue: xValue })
+          React.createElement( Tooltip, { height: height, xScale: xScale, hoveredEntry: hoveredEntry }),
+          React.createElement( Marks, {
+            data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave })
         )
       )
     );

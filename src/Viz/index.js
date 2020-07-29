@@ -1,6 +1,6 @@
 import { extent, scaleTime } from 'd3';
-import { useMemo } from 'react';
-import { Axis } from './Axis';
+import { useMemo, useCallback, useState } from 'react';
+import { Tooltip } from './Tooltip';
 import { Marks } from './Marks';
 
 const xValue = (d) => d.date;
@@ -13,11 +13,33 @@ export const Viz = ({ width, height, data }) => {
     return scaleTime().domain(extent(data, xValue)).range([0, innerWidth]);
   }, [data, innerWidth]);
 
+  const [hoveredEntry, setHoveredEntry] = useState(null);
+
+  const handleMouseEnter = useCallback(
+    (d) => {
+      setHoveredEntry(d);
+    },
+    [setHoveredEntry]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredEntry(null);
+  }, [setHoveredEntry]);
+
+  console.log(hoveredEntry);
+
   return (
     <svg width={width} height={height}>
       <g transform={`translate(${margin.left},0)`}>
-        <Axis height={height} xScale={xScale} />
-        <Marks data={data} height={height} xScale={xScale} xValue={xValue} />
+        <Tooltip height={height} xScale={xScale} hoveredEntry={hoveredEntry} />
+        <Marks
+          data={data}
+          height={height}
+          xScale={xScale}
+          xValue={xValue}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
       </g>
     </svg>
   );

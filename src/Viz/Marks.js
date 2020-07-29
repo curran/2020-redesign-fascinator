@@ -7,7 +7,15 @@ import { size } from '../constants';
 const simulation = forceSimulation().force('collide', forceCollide(size / 2));
 
 // This is the portion where D3 takes over DOM manipulation.
-const marks = ({ selection, height, data, xScale, xValue }) => {
+const marks = ({
+  selection,
+  height,
+  data,
+  xScale,
+  xValue,
+  onMouseEnter,
+  onMouseLeave,
+}) => {
   const nodes = selection
     .selectAll('image')
     .data(data)
@@ -16,6 +24,8 @@ const marks = ({ selection, height, data, xScale, xValue }) => {
         .append('image')
         .attr('href', (d) => d.thumbnailDataURL)
         .attr('height', size)
+        .on('mouseenter', (d) => onMouseEnter(d))
+        .on('mouseleave', onMouseLeave)
     );
 
   simulation.nodes(data);
@@ -31,12 +41,27 @@ const marks = ({ selection, height, data, xScale, xValue }) => {
     });
 };
 
-export const Marks = ({ height, data, xScale, xValue }) => {
+export const Marks = ({
+  height,
+  data,
+  xScale,
+  xValue,
+  onMouseEnter,
+  onMouseLeave,
+}) => {
   const ref = useRef();
 
   useEffect(() => {
     const selection = select(ref.current);
-    marks({ selection, height, data, xScale, xValue });
+    marks({
+      selection,
+      height,
+      data,
+      xScale,
+      xValue,
+      onMouseEnter,
+      onMouseLeave,
+    });
   }, [height, data, xScale, xValue]);
 
   return <g ref={ref} />;
