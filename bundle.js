@@ -10,7 +10,8 @@
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
 
-  var dataDir =  '/data';
+  var dataDir =  'https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@1.3.0/data'
+    ;
 
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';
@@ -60,13 +61,25 @@
 
   var yearFormat = d3.timeFormat('%Y');
 
-  var tickLabelYOffset = 30;
-  var titleLabelYOffset = 10;
+  // The distance from the bottom to the end of the line.
+  var tickLineYOffset = 60;
+
+  // Distance from the bottom to the year label.
+  var tickLabelYOffset = 40;
+
+  // Distance from the bottom to the title label.
+  var titleLabelYOffset = 13;
+
+  // The amount by which the text is moved to the left of the line.
+  var textXOffset = -29;
 
   var Tooltip = function (ref) {
     var height = ref.height;
     var xValue = ref.xValue;
     var hoveredEntry = ref.hoveredEntry;
+    var blackStroke = ref.blackStroke;
+    var text = ref.text;
+    var line = ref.line;
 
     if (!hoveredEntry) { return null; }
 
@@ -76,25 +89,33 @@
     var yearLabel = yearFormat(xValue(hoveredEntry));
     var titleLabel = hoveredEntry.post_title;
 
+    var textFill = blackStroke ? 'none' : 'yellow';
+    var textStroke = blackStroke ? 'black' : 'none';
+
     return (
-      React.createElement( 'g', { transform: ("translate(" + x + ",0)") },
-        React.createElement( 'line', { y2: height - tickLabelYOffset * 2, stroke: "yellow" }),
-        React.createElement( 'g', { transform: ("translate(0," + (height - tickLabelYOffset) + ")") },
-          React.createElement( 'text', {
-            textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "24px", fill: "yellow" },
-            yearLabel
-          ),
-          React.createElement( 'text', {
-            y: titleLabelYOffset, textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "20px", fill: "yellow" },
-            titleLabel
+      React.createElement( 'g', { transform: ("translate(" + x + ",0)"), style: { pointerEvents: 'none' } },
+        line ? React.createElement( 'line', { y2: height - tickLineYOffset, stroke: "yellow" }) : null,
+        text ? (
+          React.createElement( 'g', { transform: ("translate(" + textXOffset + ",0)") },
+            React.createElement( 'text', {
+              y: height - tickLabelYOffset, alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "26px", fill: textFill, stroke: textStroke, strokeWidth: 3 },
+              yearLabel
+            ),
+            React.createElement( 'text', {
+              y: height - titleLabelYOffset, alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "18px", fill: textFill, stroke: textStroke, strokeWidth: 3 },
+              titleLabel
+            )
           )
-        )
+        ) : null
       )
     );
   };
 
   // Factor to multiply the size by for hovered entry.
-  var enlargement = 1.5;
+  var enlargement = 2;
+
+  // Pixels gap to leave between circles.
+  var collidePadding = 3;
 
   var simulation = d3.forceSimulation();
 
@@ -126,8 +147,10 @@
       .attr('href', function (d) { return d.thumbnailDataURL; });
     imagesUpdate
       .merge(imagesEnter)
-      .attr('height', function (d) { return (d === hoveredEntry ? size * enlargement : size); })
-      .attr('width', function (d) { return (d === hoveredEntry ? size * enlargement : size); });
+      .attr('x', function (d) { return -d.size / 2; })
+      .attr('y', function (d) { return -d.size / 2; })
+      .attr('height', function (d) { return d.size; })
+      .attr('width', function (d) { return d.size; });
 
     // Each parent group contains a link that opens the work page.
     var linksUpdate = nodesUpdate.select('a');
@@ -148,14 +171,16 @@
       .attr('r', function (d) { return (d === hoveredEntry ? radius * enlargement : radius); });
 
     // Update the collide force to know about the hovered entry.
-    simulation.force(
-      'collide',
-      d3.forceCollide(function (d) { return (d === hoveredEntry ? radius * enlargement : radius); })
-    );
-
-    simulation.nodes(data);
-
     simulation
+      .nodes(data)
+      .force(
+        'collide',
+        d3.forceCollide(
+          function (d) { return (d === hoveredEntry ? radius * enlargement : radius) + collidePadding; }
+        )
+      )
+      .force('charge', d3.forceManyBody())
+      .velocityDecay(0.1)
       .force('y', d3.forceY(height / 2))
       .force(
         'x',
@@ -163,7 +188,9 @@
       )
       .on('tick', function () {
         nodes.attr('transform', function (d) { return ("translate(" + (d.x) + "," + (d.y) + ")"); });
-      });
+      })
+      .alphaTarget(hoveredEntry ? 0.01 : 0)
+      .restart();
   };
 
   var Marks = function (ref$1) {
@@ -176,6 +203,29 @@
     var hoveredEntry = ref$1.hoveredEntry;
 
     var ref = React$1.useRef();
+
+    // Compute the size of things based on the hovered entry.
+    // Better to do it in one place like this instead of
+    // duplicated across all logic that depends on it.
+    // 🌶️ Mutates the `size` and `radius` properties on data array elements.
+    React$1.useEffect(function () {
+      data.forEach(function (d) {
+        // If the entry is the hovered entry,
+        // make it larger and
+        // fix it so it doesn't move.
+        if (d === hoveredEntry) {
+          d.size = size * enlargement;
+          d.radius = radius * enlargement;
+          d.fx = d.x;
+          d.fy = d.y;
+        } else {
+          d.size = size;
+          d.radius = size;
+          d.fx = null;
+          d.fy = null;
+        }
+      });
+    }, [data, hoveredEntry]);
 
     React$1.useEffect(function () {
       var selection = d3.select(ref.current);
@@ -226,9 +276,14 @@
     return (
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
-          React.createElement( Tooltip, { height: height, xValue: xValue, hoveredEntry: hoveredEntry }),
+          React.createElement( Tooltip, {
+            height: height, xValue: xValue, hoveredEntry: hoveredEntry, line: true }),
           React.createElement( Marks, {
-            data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry })
+            data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
+          React.createElement( Tooltip, {
+            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true, blackStroke: true }),
+          React.createElement( Tooltip, {
+            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true })
         )
       )
     );

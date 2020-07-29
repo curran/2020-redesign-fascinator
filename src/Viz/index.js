@@ -29,7 +29,12 @@ export const Viz = ({ width, height, data }) => {
   return (
     <svg width={width} height={height}>
       <g transform={`translate(${margin.left},0)`}>
-        <Tooltip height={height} xValue={xValue} hoveredEntry={hoveredEntry} />
+        <Tooltip
+          height={height}
+          xValue={xValue}
+          hoveredEntry={hoveredEntry}
+          line
+        />
         <Marks
           data={data}
           height={height}
@@ -38,6 +43,19 @@ export const Viz = ({ width, height, data }) => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           hoveredEntry={hoveredEntry}
+        />
+        <Tooltip
+          height={height}
+          xValue={xValue}
+          hoveredEntry={hoveredEntry}
+          text
+          blackStroke
+        />
+        <Tooltip
+          height={height}
+          xValue={xValue}
+          hoveredEntry={hoveredEntry}
+          text
         />
       </g>
     </svg>

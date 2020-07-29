@@ -1,11 +1,21 @@
 import { useRef, useEffect } from 'react';
-import { select, forceSimulation, forceX, forceY, forceCollide } from 'd3';
+import {
+  select,
+  forceSimulation,
+  forceX,
+  forceY,
+  forceCollide,
+  forceManyBody,
+} from 'd3';
 
 // Use the same size as the images, no client-side resampling.
 import { size, radius } from '../constants';
 
 // Factor to multiply the size by for hovered entry.
-const enlargement = 1.5;
+const enlargement = 2;
+
+// Pixels gap to leave between circles.
+const collidePadding = 3;
 
 const simulation = forceSimulation();
 
@@ -37,8 +47,10 @@ const marks = ({
     .attr('href', (d) => d.thumbnailDataURL);
   imagesUpdate
     .merge(imagesEnter)
-    .attr('height', (d) => (d === hoveredEntry ? size * enlargement : size))
-    .attr('width', (d) => (d === hoveredEntry ? size * enlargement : size));
+    .attr('x', (d) => -d.size / 2)
+    .attr('y', (d) => -d.size / 2)
+    .attr('height', (d) => d.size)
+    .attr('width', (d) => d.size);
 
   // Each parent group contains a link that opens the work page.
   const linksUpdate = nodesUpdate.select('a');
@@ -59,14 +71,17 @@ const marks = ({
     .attr('r', (d) => (d === hoveredEntry ? radius * enlargement : radius));
 
   // Update the collide force to know about the hovered entry.
-  simulation.force(
-    'collide',
-    forceCollide((d) => (d === hoveredEntry ? radius * enlargement : radius))
-  );
-
-  simulation.nodes(data);
-
   simulation
+    .nodes(data)
+    .force(
+      'collide',
+      forceCollide(
+        (d) =>
+          (d === hoveredEntry ? radius * enlargement : radius) + collidePadding
+      )
+    )
+    .force('charge', forceManyBody())
+    .velocityDecay(0.1)
     .force('y', forceY(height / 2))
     .force(
       'x',
@@ -74,7 +89,9 @@ const marks = ({
     )
     .on('tick', () => {
       nodes.attr('transform', (d) => `translate(${d.x},${d.y})`);
-    });
+    })
+    .alphaTarget(hoveredEntry ? 0.01 : 0)
+    .restart();
 };
 
 export const Marks = ({
@@ -87,6 +104,29 @@ export const Marks = ({
   hoveredEntry,
 }) => {
   const ref = useRef();
+
+  // Compute the size of things based on the hovered entry.
+  // Better to do it in one place like this instead of
+  // duplicated across all logic that depends on it.
+  // 🌶️ Mutates the `size` and `radius` properties on data array elements.
+  useEffect(() => {
+    data.forEach((d) => {
+      // If the entry is the hovered entry,
+      // make it larger and
+      // fix it so it doesn't move.
+      if (d === hoveredEntry) {
+        d.size = size * enlargement;
+        d.radius = radius * enlargement;
+        d.fx = d.x;
+        d.fy = d.y;
+      } else {
+        d.size = size;
+        d.radius = size;
+        d.fx = null;
+        d.fy = null;
+      }
+    });
+  }, [data, hoveredEntry]);
 
   useEffect(() => {
     const selection = select(ref.current);
