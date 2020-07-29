@@ -58,30 +58,35 @@
 
   var yearFormat = d3.timeFormat('%Y');
 
-  var tickLabelYOffset = 20;
+  var tickLabelYOffset = 30;
+  var titleLabelYOffset = 10;
 
   var Tooltip = function (ref) {
     var height = ref.height;
-    var xScale = ref.xScale;
+    var xValue = ref.xValue;
+    var hoveredEntry = ref.hoveredEntry;
+
+    if (!hoveredEntry) { return null; }
+
+    // Get exactly 1px wide lines that fall on the pixel exactly.
+    var x = Math.round(hoveredEntry.x) + 0.5;
+
+    var yearLabel = yearFormat(xValue(hoveredEntry));
+    var titleLabel = hoveredEntry.post_title;
 
     return (
-      React.createElement( 'g', null,
-        xScale.ticks().map(function (d) {
-          // Get exactly 1px wide lines that fall on the pixel exactly.
-          var x = Math.round(xScale(d)) + 0.5;
-
-          var label = yearFormat(d);
-
-          return (
-            React.createElement( 'g', { key: label, transform: ("translate(" + x + ",0)") },
-              React.createElement( 'line', { y2: height - tickLabelYOffset * 2, stroke: "white" }),
-              React.createElement( 'text', {
-                y: height - tickLabelYOffset, textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "20px", fill: "white" },
-                label
-              )
-            )
-          );
-        })
+      React.createElement( 'g', { transform: ("translate(" + x + ",0)") },
+        React.createElement( 'line', { y2: height - tickLabelYOffset * 2, stroke: "yellow" }),
+        React.createElement( 'g', { transform: ("translate(0," + (height - tickLabelYOffset) + ")") },
+          React.createElement( 'text', {
+            textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "24px", fill: "yellow" },
+            yearLabel
+          ),
+          React.createElement( 'text', {
+            y: titleLabelYOffset, textAnchor: "middle", alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "20px", fill: "yellow" },
+            titleLabel
+          )
+        )
       )
     );
   };
@@ -177,12 +182,10 @@
       setHoveredEntry(null);
     }, [setHoveredEntry]);
 
-    console.log(hoveredEntry);
-
     return (
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
-          React.createElement( Tooltip, { height: height, xScale: xScale, hoveredEntry: hoveredEntry }),
+          React.createElement( Tooltip, { height: height, xValue: xValue, hoveredEntry: hoveredEntry }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave })
         )

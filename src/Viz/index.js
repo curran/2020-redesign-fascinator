@@ -26,12 +26,10 @@ export const Viz = ({ width, height, data }) => {
     setHoveredEntry(null);
   }, [setHoveredEntry]);
 
-  console.log(hoveredEntry);
-
   return (
     <svg width={width} height={height}>
       <g transform={`translate(${margin.left},0)`}>
-        <Tooltip height={height} xScale={xScale} hoveredEntry={hoveredEntry} />
+        <Tooltip height={height} xValue={xValue} hoveredEntry={hoveredEntry} />
         <Marks
           data={data}
           height={height}
