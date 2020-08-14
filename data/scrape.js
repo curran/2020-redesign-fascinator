@@ -13,7 +13,8 @@ const wordpressListingURL =
 // Fetches and parses the listing from the WordPress API endpoint.
 const fetchWordpressListing = async () => {
   const response = await fetch(wordpressListingURL);
-  return await response.json();
+  const rawData = await response.json();
+  return rawData.filter((d) => d.post_status !== 'draft');
 };
 
 // Fetches all images, resizes them, encodes them to JSON, and write the output.
@@ -25,63 +26,101 @@ const main = async () => {
     wordpressListing = wordpressListing.slice(0, 2);
   }
 
-  // Count for reporting progress.
-  let i = 1;
+  const data = await wordpressListing.reduce(
+    async (accumulatorPromise, d) => {
+      const accumulator = await accumulatorPromise;
+      const {
+        ID,
+        post_title,
+        go_live_date,
+        thumbnail_image,
+        post_name,
+        work_types,
+        industries,
+        subject_matter,
+        technologies,
+      } = d;
+      // Load the image over the network.
+      // Docs:
+      // https://github.com/Automattic/node-canvas#loadimage
 
-  const data = await Promise.all(
-    wordpressListing.map(
-      async ({ ID, post_title, go_live_date, thumbnail_image, post_name }) => {
-        // Load the image over the network.
-        // Docs:
-        // https://github.com/Automattic/node-canvas#loadimage
-        const image = await loadImage(thumbnail_image);
+      if (!thumbnail_image) {
+        console.log(
+          'Ignoring entry with missing thumbnail: ' +
+            post_name
+        );
+        return accumulator;
+      }
 
-        console.log(`scraped image ${i++} of ${wordpressListing.length}.`);
+      const image = await loadImage(thumbnail_image);
 
-        // Scale down the image to fill a square,
-        // centered at the center of the original image.
-        // Draws from:
-        // https://riptutorial.com/html5-canvas/example/19169/scaling-image-to-fit-or-fill-
-        const { width, height } = image;
-        const scale = Math.max(size / width, size / height);
-        const dx = radius - (width / 2) * scale;
-        const dy = radius - (height / 2) * scale;
-        const dWidth = width * scale;
-        const dHeight = height * scale;
+      console.log(
+        `scraped image ${accumulator.length + 1} of ${
+          wordpressListing.length
+        }.`
+      );
 
-        // Create a Canvas and draw the image to it.
-        // Docs:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
-        const canvas = createCanvas(size, size);
-        const ctx = canvas.getContext('2d');
+      // Scale down the image to fill a square,
+      // centered at the center of the original image.
+      // Draws from:
+      // https://riptutorial.com/html5-canvas/example/19169/scaling-image-to-fit-or-fill-
+      const { width, height } = image;
+      const scale = Math.max(size / width, size / height);
+      const dx = radius - (width / 2) * scale;
+      const dy = radius - (height / 2) * scale;
+      const dWidth = width * scale;
+      const dHeight = height * scale;
 
-        ctx.save();
+      // Create a Canvas and draw the image to it.
+      // Docs:
+      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+      const canvas = createCanvas(size, size);
+      const ctx = canvas.getContext('2d');
 
-        // Mask the image with a circle.
-        // Draws from http://jsfiddle.net/jimrhoskins/dDUC3/1/
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2, false);
-        ctx.closePath();
-        ctx.clip();
+      ctx.save();
 
-        ctx.drawImage(image, dx, dy, dWidth, dHeight);
+      // Mask the image with a circle.
+      // Draws from http://jsfiddle.net/jimrhoskins/dDUC3/1/
+      ctx.beginPath();
+      ctx.arc(
+        size / 2,
+        size / 2,
+        radius,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.closePath();
+      ctx.clip();
 
-        ctx.restore();
+      ctx.drawImage(image, dx, dy, dWidth, dHeight);
 
-        // Base64-encode the image.
-        // Docs:
-        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
-        const thumbnailDataURL = canvas.toDataURL('image/png', 0.8);
+      ctx.restore();
 
-        return {
+      // Base64-encode the image.
+      // Docs:
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
+      const thumbnailDataURL = canvas.toDataURL(
+        'image/png',
+        0.8
+      );
+
+      return [
+        ...accumulator,
+        {
           ID,
           post_title,
           go_live_date,
           post_name,
           thumbnailDataURL,
-        };
-      }
-    )
+          work_types,
+          industries,
+          subject_matter,
+          technologies,
+        },
+      ];
+    },
+    Promise.resolve([])
   );
 
   const json = JSON.stringify(data);

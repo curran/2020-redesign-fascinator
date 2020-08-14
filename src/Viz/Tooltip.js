@@ -1,4 +1,5 @@
-import { timeFormat } from 'd3';
+import { useRef, useEffect } from 'react';
+import { select, timeFormat } from 'd3';
 
 const yearFormat = timeFormat('%Y');
 
@@ -14,54 +15,123 @@ const titleLabelYOffset = 13;
 // The amount by which the text is moved to the left of the line.
 const textXOffset = -29;
 
+// Unique ID per entry.
+const key = (d) => d.ID;
+
+// Get exactly 1px wide lines that fall on the pixel exactly.
+const xExact = (d) => Math.round(d.x) + 0.5;
+
+// The number of milliseconds for the line animation.
+const lineTransitionDuration = 1000;
+
+// The number of milliseconds for the text animation.
+const textTransitionDuration = 400;
+
+// The number of milliseconds before the end of the line transition
+// that the text transition starts.
+const textTransitionAnticipation = 200;
+
 export const Tooltip = ({
   height,
   xValue,
+  data,
   hoveredEntry,
   blackStroke,
-  text,
   line,
+  text,
 }) => {
-  if (!hoveredEntry) return null;
+  const ref = useRef();
 
-  // Get exactly 1px wide lines that fall on the pixel exactly.
-  const x = Math.round(hoveredEntry.x) + 0.5;
+  useEffect(() => {
+    const g = select(ref.current);
 
-  const yearLabel = yearFormat(xValue(hoveredEntry));
-  const titleLabel = hoveredEntry.post_title;
+    g.selectAll('line')
+      .data(data, key)
+      .join(
+        (enter) =>
+          enter.append('line').attr('stroke', 'yellow'),
+        (update) =>
+          update
+            .attr('x1', xExact)
+            .attr('x2', xExact)
+            .call((update) =>
+              update
+                .transition()
+                .duration(lineTransitionDuration)
+                .attr('y2', (d) =>
+                  d === hoveredEntry
+                    ? height - tickLineYOffset
+                    : 0
+                )
+            )
+      );
 
-  const textFill = blackStroke ? 'none' : 'yellow';
-  const textStroke = blackStroke ? 'black' : 'none';
+    const textFill = blackStroke ? 'none' : 'yellow';
+    const textStroke = blackStroke ? 'black' : 'none';
+
+    const labels = (d) => [
+      {
+        text: yearFormat(xValue(d)),
+        x: d.x + textXOffset,
+        y: height - tickLabelYOffset,
+        fontSize: '26px',
+      },
+      {
+        text: hoveredEntry.post_title,
+        x: d.x + textXOffset,
+        y: height - titleLabelYOffset,
+        fontSize: '18px',
+      },
+    ];
+
+    g.selectAll('text')
+      .data(
+        text && hoveredEntry ? labels(hoveredEntry) : []
+      )
+      .join(
+        (enter) =>
+          enter
+            .append('text')
+            .attr('alignment-baseline', 'middle')
+            .attr(
+              'font-family',
+              'HelveticaNeue, sans-serif'
+            )
+            .attr('font-size', (d) => d.fontSize)
+            .attr('fill', textFill)
+            .attr('stroke', textStroke)
+            .attr('stroke-width', 4)
+            .text((d) => d.text)
+            .attr('x', (d) => d.x)
+            .attr('y', (d) => d.y)
+            .attr('opacity', 0),
+        (update) =>
+          update.call((update) =>
+            update
+              .transition()
+              .delay(textTransitionDuration)
+              .attr('x', (d) => d.x)
+              .attr('y', (d) => d.y)
+              .text((d) => d.text)
+          ),
+        (exit) =>
+          exit.call((exit) =>
+            exit
+              .transition('opacity')
+              .duration(textTransitionDuration)
+              .attr('opacity', 0)
+              .remove()
+          )
+      )
+      .transition('opacity')
+      .delay(
+        lineTransitionDuration - textTransitionAnticipation
+      )
+      .duration(textTransitionDuration)
+      .attr('opacity', 1);
+  }, [data, hoveredEntry]);
 
   return (
-    <g transform={`translate(${x},0)`} style={{ pointerEvents: 'none' }}>
-      {line ? <line y2={height - tickLineYOffset} stroke="yellow" /> : null}
-      {text ? (
-        <g transform={`translate(${textXOffset},0)`}>
-          <text
-            y={height - tickLabelYOffset}
-            alignmentBaseline="middle"
-            fontFamily="HelveticaNeue, sans-serif"
-            fontSize="26px"
-            fill={textFill}
-            stroke={textStroke}
-            strokeWidth={3}
-          >
-            {yearLabel}
-          </text>
-          <text
-            y={height - titleLabelYOffset}
-            alignmentBaseline="middle"
-            fontFamily="HelveticaNeue, sans-serif"
-            fontSize="18px"
-            fill={textFill}
-            stroke={textStroke}
-            strokeWidth={3}
-          >
-            {titleLabel}
-          </text>
-        </g>
-      ) : null}
-    </g>
+    <g style={{ pointerEvents: 'none' }} ref={ref}></g>
   );
 };

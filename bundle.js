@@ -1,8 +1,10 @@
 (function (React$1, ReactDOM, d3) {
   'use strict';
 
-  var React$1__default = 'default' in React$1 ? React$1['default'] : React$1;
-  ReactDOM = ReactDOM && ReactDOM.hasOwnProperty('default') ? ReactDOM['default'] : ReactDOM;
+  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+  var React__default = /*#__PURE__*/_interopDefaultLegacy(React$1);
+  var ReactDOM__default = /*#__PURE__*/_interopDefaultLegacy(ReactDOM);
 
   // The images generated are ${size}px by ${size}px;
   var size = 70;
@@ -55,7 +57,10 @@
       };
       updateDimensions();
       window.addEventListener('resize', updateDimensions);
-      return function () { return window.removeEventListener('resize', updateDimensions); };
+      return function () { return window.removeEventListener(
+          'resize',
+          updateDimensions
+        ); };
     }, []);
 
     return dimensions;
@@ -75,41 +80,114 @@
   // The amount by which the text is moved to the left of the line.
   var textXOffset = -29;
 
-  var Tooltip = function (ref) {
-    var height = ref.height;
-    var xValue = ref.xValue;
-    var hoveredEntry = ref.hoveredEntry;
-    var blackStroke = ref.blackStroke;
-    var text = ref.text;
-    var line = ref.line;
+  // Unique ID per entry.
+  var key = function (d) { return d.ID; };
 
-    if (!hoveredEntry) { return null; }
+  // Get exactly 1px wide lines that fall on the pixel exactly.
+  var xExact = function (d) { return Math.round(d.x) + 0.5; };
 
-    // Get exactly 1px wide lines that fall on the pixel exactly.
-    var x = Math.round(hoveredEntry.x) + 0.5;
+  // The number of milliseconds for the line animation.
+  var lineTransitionDuration = 1000;
 
-    var yearLabel = yearFormat(xValue(hoveredEntry));
-    var titleLabel = hoveredEntry.post_title;
+  // The number of milliseconds for the text animation.
+  var textTransitionDuration = 400;
 
-    var textFill = blackStroke ? 'none' : 'yellow';
-    var textStroke = blackStroke ? 'black' : 'none';
+  // The number of milliseconds before the end of the line transition
+  // that the text transition starts.
+  var textTransitionAnticipation = 200;
+
+  var Tooltip = function (ref$1) {
+    var height = ref$1.height;
+    var xValue = ref$1.xValue;
+    var data = ref$1.data;
+    var hoveredEntry = ref$1.hoveredEntry;
+    var blackStroke = ref$1.blackStroke;
+    var line = ref$1.line;
+    var text = ref$1.text;
+
+    var ref = React$1.useRef();
+
+    React$1.useEffect(function () {
+      var g = d3.select(ref.current);
+
+      g.selectAll('line')
+        .data(data, key)
+        .join(
+          function (enter) { return enter.append('line').attr('stroke', 'yellow'); },
+          function (update) { return update
+              .attr('x1', xExact)
+              .attr('x2', xExact)
+              .call(function (update) { return update
+                  .transition()
+                  .duration(lineTransitionDuration)
+                  .attr('y2', function (d) { return d === hoveredEntry
+                      ? height - tickLineYOffset
+                      : 0; }
+                  ); }
+              ); }
+        );
+
+      var textFill = blackStroke ? 'none' : 'yellow';
+      var textStroke = blackStroke ? 'black' : 'none';
+
+      var labels = function (d) { return [
+        {
+          text: yearFormat(xValue(d)),
+          x: d.x + textXOffset,
+          y: height - tickLabelYOffset,
+          fontSize: '26px',
+        },
+        {
+          text: hoveredEntry.post_title,
+          x: d.x + textXOffset,
+          y: height - titleLabelYOffset,
+          fontSize: '18px',
+        } ]; };
+
+      g.selectAll('text')
+        .data(
+          text && hoveredEntry ? labels(hoveredEntry) : []
+        )
+        .join(
+          function (enter) { return enter
+              .append('text')
+              .attr('alignment-baseline', 'middle')
+              .attr(
+                'font-family',
+                'HelveticaNeue, sans-serif'
+              )
+              .attr('font-size', function (d) { return d.fontSize; })
+              .attr('fill', textFill)
+              .attr('stroke', textStroke)
+              .attr('stroke-width', 4)
+              .text(function (d) { return d.text; })
+              .attr('x', function (d) { return d.x; })
+              .attr('y', function (d) { return d.y; })
+              .attr('opacity', 0); },
+          function (update) { return update.call(function (update) { return update
+                .transition()
+                .delay(textTransitionDuration)
+                .attr('x', function (d) { return d.x; })
+                .attr('y', function (d) { return d.y; })
+                .text(function (d) { return d.text; }); }
+            ); },
+          function (exit) { return exit.call(function (exit) { return exit
+                .transition('opacity')
+                .duration(textTransitionDuration)
+                .attr('opacity', 0)
+                .remove(); }
+            ); }
+        )
+        .transition('opacity')
+        .delay(
+          lineTransitionDuration - textTransitionAnticipation
+        )
+        .duration(textTransitionDuration)
+        .attr('opacity', 1);
+    }, [data, hoveredEntry]);
 
     return (
-      React.createElement( 'g', { transform: ("translate(" + x + ",0)"), style: { pointerEvents: 'none' } },
-        line ? React.createElement( 'line', { y2: height - tickLineYOffset, stroke: "yellow" }) : null,
-        text ? (
-          React.createElement( 'g', { transform: ("translate(" + textXOffset + ",0)") },
-            React.createElement( 'text', {
-              y: height - tickLabelYOffset, alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "26px", fill: textFill, stroke: textStroke, strokeWidth: 3 },
-              yearLabel
-            ),
-            React.createElement( 'text', {
-              y: height - titleLabelYOffset, alignmentBaseline: "middle", fontFamily: "HelveticaNeue, sans-serif", fontSize: "18px", fill: textFill, stroke: textStroke, strokeWidth: 3 },
-              titleLabel
-            )
-          )
-        ) : null
-      )
+      React.createElement( 'g', { style: { pointerEvents: 'none' }, ref: ref })
     );
   };
 
@@ -133,13 +211,13 @@
     var hoveredEntry = ref.hoveredEntry;
 
     // Each node has a parent group that listens for mouse events.
-    var nodesUpdate = selection.selectAll('.node').data(data);
+    var nodesUpdate = selection
+      .selectAll('.node')
+      .data(data);
     var nodesEnter = nodesUpdate
       .enter()
       .append('g')
-      .attr('class', 'node')
-      .on('mouseenter', function (d) { return onMouseEnter(d); })
-      .on('mouseleave', onMouseLeave);
+      .attr('class', 'node');
     var nodes = nodesUpdate.merge(nodesEnter);
 
     // Each parent group contains an image.
@@ -158,7 +236,10 @@
     var linksUpdate = nodesUpdate.select('a');
     var linksEnter = nodesEnter
       .append('a')
-      .attr('href', function (d) { return ((window.location.origin) + "/work/" + (d.post_name)); })
+      .attr(
+        'href',
+        function (d) { return ((window.location.origin) + "/work/" + (d.post_name)); }
+      )
       .attr('target', '_blank')
       .attr('rel', 'noopener noreferrer')
       .style('pointer-events', 'all');
@@ -166,11 +247,17 @@
     // Each link contains a circle that intercepts mouse events
     // and provides the stroke around the circularly masked images.
     var circlesUpdate = linksUpdate.select('circle');
-    var circlesEnter = linksEnter.append('circle').attr('fill', 'none');
+    var circlesEnter = linksEnter
+      .append('circle')
+      .attr('fill', 'none');
     circlesUpdate
       .merge(circlesEnter)
-      .attr('stroke', function (d) { return (d === hoveredEntry ? 'yellow' : 'white'); })
-      .attr('r', function (d) { return (d === hoveredEntry ? radius * enlargement : radius); });
+      .attr('stroke', function (d) { return d === hoveredEntry ? 'yellow' : 'white'; }
+      )
+      .attr('r', function (d) { return d === hoveredEntry ? radius * enlargement : radius; }
+      )
+      .on('mouseenter', function (d) { return onMouseEnter(d); })
+      .on('mouseleave', onMouseLeave);
 
     // Update the collide force to know about the hovered entry.
     simulation
@@ -178,7 +265,9 @@
       .force(
         'collide',
         d3.forceCollide(
-          function (d) { return (d === hoveredEntry ? radius * enlargement : radius) + collidePadding; }
+          function (d) { return (d === hoveredEntry
+              ? radius * enlargement
+              : radius) + collidePadding; }
         )
       )
       .force('charge', d3.forceManyBody())
@@ -189,7 +278,10 @@
         d3.forceX(function (d) { return xScale(xValue(d)); })
       )
       .on('tick', function () {
-        nodes.attr('transform', function (d) { return ("translate(" + (d.x) + "," + (d.y) + ")"); });
+        nodes.attr(
+          'transform',
+          function (d) { return ("translate(" + (d.x) + "," + (d.y) + ")"); }
+        );
       })
       .alphaTarget(hoveredEntry ? 0.01 : 0)
       .restart();
@@ -241,7 +333,14 @@
         onMouseLeave: onMouseLeave,
         hoveredEntry: hoveredEntry,
       });
-    }, [height, data, xScale, xValue, hoveredEntry, onMouseEnter, onMouseLeave]);
+    }, [
+      height,
+      data,
+      xScale,
+      xValue,
+      hoveredEntry,
+      onMouseEnter,
+      onMouseLeave ]);
 
     return React.createElement( 'g', { ref: ref });
   };
@@ -257,7 +356,9 @@
 
     var xScale = React$1.useMemo(function () {
       var innerWidth = width - margin.left - margin.right;
-      return d3.scaleTime().domain(d3.extent(data, xValue)).range([0, innerWidth]);
+      return d3.scaleTime()
+        .domain(d3.extent(data, xValue))
+        .range([0, innerWidth]);
     }, [data, width]);
 
     var ref$1 = React$1.useState(null);
@@ -279,7 +380,7 @@
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, line: true }),
+            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry, line: true }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
           React.createElement( Tooltip, {
@@ -301,7 +402,7 @@
     ) : null;
   };
 
-  ReactDOM.render(React$1__default.createElement( App, null ), fascinator);
+  ReactDOM__default['default'].render(React__default['default'].createElement( App, null ), fascinator);
 
 }(React, ReactDOM, d3));
 //# sourceMappingURL=bundle.js.map
