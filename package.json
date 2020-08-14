@@ -10,7 +10,8 @@
     "dev": "npm-run-all --parallel start watch",
     "start": "serve .",
     "prettier": "prettier --single-quote --write '**/*.js' '*.js' --print-width 60",
-    "scrape": "node -r esm data/scrape.js"
+    "scrape": "node -r esm data/scrape.js",
+    "version": "npm run build"
   },
   "repository": {
     "type": "git",
