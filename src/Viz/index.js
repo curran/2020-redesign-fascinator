@@ -34,6 +34,7 @@ export const Viz = ({ width, height, data }) => {
         <Tooltip
           height={height}
           xValue={xValue}
+          data={data}
           hoveredEntry={hoveredEntry}
           line
         />

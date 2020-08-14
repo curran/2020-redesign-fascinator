@@ -77,9 +77,26 @@
   // The amount by which the text is moved to the left of the line.
   var textXOffset = -29;
 
+  // Unique ID per entry.
+  var key = function (d) { return d.ID; };
+
+  // Get exactly 1px wide lines that fall on the pixel exactly.
+  var xExact = function (d) { return Math.round(d.x) + 0.5; };
+
+  // The number of milliseconds for the line animation.
+  var lineTransitionDuration = 1000;
+
+  // The number of milliseconds for the text animation.
+  var textTransitionDuration = 400;
+
+  // The number of milliseconds before the end of the line transition
+  // that the text transition starts.
+  var textTransitionAnticipation = 200;
+
   var Tooltip = function (ref$1) {
     var height = ref$1.height;
     var xValue = ref$1.xValue;
+    var data = ref$1.data;
     var hoveredEntry = ref$1.hoveredEntry;
     var blackStroke = ref$1.blackStroke;
     var line = ref$1.line;
@@ -90,50 +107,62 @@
     React$1.useEffect(function () {
       var g = d3.select(ref.current);
 
-      if (hoveredEntry) {
-        // Get exactly 1px wide lines that fall on the pixel exactly.
-        var x = Math.round(hoveredEntry.x) + 0.5;
-        g.attr('transform', ("translate(" + x + ",0)"));
-      }
-
       g.selectAll('line')
-        .data(line && hoveredEntry ? [hoveredEntry] : [])
+        .data(data, key)
         .join(
-          function (enter) { return enter
-              .append('line')
-              .attr('stroke', 'yellow')
-              .call(function (enter) { return enter
+          function (enter) { return enter.append('line').attr('stroke', 'yellow'); },
+          function (update) { return update
+              .attr('x1', xExact)
+              .attr('x2', xExact)
+              .call(function (update) { return update
                   .transition()
-                  .duration(1000)
-                  .attr('y2', height - tickLineYOffset); }
-              ); },
-          function (update) { return update; },
-          function (exit) { return exit.call(function (exit) { return exit
-                .transition()
-                .duration(1000)
-                .attr('y2', 0)
-                .remove(); }
-            ); }
+                  .duration(lineTransitionDuration)
+                  .attr('y2', function (d) { return d === hoveredEntry
+                      ? height - tickLineYOffset
+                      : 0; }
+                  ); }
+              ); }
         );
 
       var textFill = blackStroke ? 'none' : 'yellow';
       var textStroke = blackStroke ? 'black' : 'none';
 
       g.selectAll('text')
-        .data(text && hoveredEntry ? [hoveredEntry] : [])
-        .join(function (enter) { return enter
-            .append('text')
-            .attr('x', textXOffset)
-            .attr('y', height - tickLabelYOffset)
-            .attr('alignmentBaseline', 'middle')
-            .attr('fontFamily', 'HelveticaNeue, sans-serif')
-            .attr('fontSize', '26px')
-            .attr('fill', textFill)
-            .attr('stroke', textStroke)
-            .attr('strokeWidth', 3)
-            .text(function (d) { return yearFormat(xValue(d)); }); }
+        .data(text && hoveredEntry ? [hoveredEntry] : [], key)
+        .join(
+          function (enter) { return enter
+              .append('text')
+              .attr('x', function (d) { return d.x + textXOffset; })
+              .attr('y', height - tickLabelYOffset)
+              .attr('alignment-baseline', 'middle')
+              .attr(
+                'font-family',
+                'HelveticaNeue, sans-serif'
+              )
+              .attr('font-size', '26px')
+              .attr('fill', textFill)
+              .attr('stroke', textStroke)
+              .attr('stroke-width', 3)
+              .text(function (d) { return yearFormat(xValue(d)); })
+              .attr('opacity', 0)
+              .call(function (enter) { return enter
+                  .transition()
+                  .delay(
+                    lineTransitionDuration -
+                      textTransitionAnticipation
+                  )
+                  .duration(textTransitionDuration)
+                  .attr('opacity', 1); }
+              ); },
+          function (update) { return update; },
+          function (exit) { return exit.call(function (exit) { return exit
+                .transition()
+                .duration(textTransitionDuration)
+                .attr('opacity', 0)
+                .remove(); }
+            ); }
         );
-    }, [hoveredEntry]);
+    }, [data, hoveredEntry]);
     // {text ? (
     //   <g transform={`translate(${textXOffset},0)`}>
     //     <text
@@ -346,7 +375,7 @@
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, line: true }),
+            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry, line: true }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
           React.createElement( Tooltip, {
