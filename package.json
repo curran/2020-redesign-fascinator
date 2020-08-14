@@ -9,7 +9,7 @@
     "watch": "rollup -c -w",
     "dev": "npm-run-all --parallel start watch",
     "start": "serve .",
-    "prettier": "prettier --single-quote --write '**/*.js' '*.js'",
+    "prettier": "prettier --single-quote --write '**/*.js' '*.js' --print-width 60",
     "scrape": "node -r esm data/scrape.js"
   },
   "repository": {
@@ -36,6 +36,7 @@
     "serve": "^11.3.2"
   },
   "dependencies": {
+    "d3-delaunay": "^5.3.0",
     "prettier": "^2.0.5"
   }
 }

@@ -8,7 +8,11 @@ export default {
     file: 'bundle.js',
     format: 'iife',
     sourcemap: true,
-    globals: { d3: 'd3', react: 'React', 'react-dom': 'ReactDOM' },
+    globals: {
+      d3: 'd3',
+      react: 'React',
+      'react-dom': 'ReactDOM',
+    },
   },
   plugins: [
     buble({

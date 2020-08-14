@@ -10,7 +10,9 @@ const margin = { left: 100, right: 200 };
 export const Viz = ({ width, height, data }) => {
   const xScale = useMemo(() => {
     const innerWidth = width - margin.left - margin.right;
-    return scaleTime().domain(extent(data, xValue)).range([0, innerWidth]);
+    return scaleTime()
+      .domain(extent(data, xValue))
+      .range([0, innerWidth]);
   }, [data, width]);
 
   const [hoveredEntry, setHoveredEntry] = useState(null);

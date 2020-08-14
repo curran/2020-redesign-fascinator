@@ -31,13 +31,13 @@ const marks = ({
   hoveredEntry,
 }) => {
   // Each node has a parent group that listens for mouse events.
-  const nodesUpdate = selection.selectAll('.node').data(data);
+  const nodesUpdate = selection
+    .selectAll('.node')
+    .data(data);
   const nodesEnter = nodesUpdate
     .enter()
     .append('g')
-    .attr('class', 'node')
-    .on('mouseenter', (d) => onMouseEnter(d))
-    .on('mouseleave', onMouseLeave);
+    .attr('class', 'node');
   const nodes = nodesUpdate.merge(nodesEnter);
 
   // Each parent group contains an image.
@@ -56,7 +56,10 @@ const marks = ({
   const linksUpdate = nodesUpdate.select('a');
   const linksEnter = nodesEnter
     .append('a')
-    .attr('href', (d) => `${window.location.origin}/work/${d.post_name}`)
+    .attr(
+      'href',
+      (d) => `${window.location.origin}/work/${d.post_name}`
+    )
     .attr('target', '_blank')
     .attr('rel', 'noopener noreferrer')
     .style('pointer-events', 'all');
@@ -64,11 +67,19 @@ const marks = ({
   // Each link contains a circle that intercepts mouse events
   // and provides the stroke around the circularly masked images.
   const circlesUpdate = linksUpdate.select('circle');
-  const circlesEnter = linksEnter.append('circle').attr('fill', 'none');
+  const circlesEnter = linksEnter
+    .append('circle')
+    .attr('fill', 'none');
   circlesUpdate
     .merge(circlesEnter)
-    .attr('stroke', (d) => (d === hoveredEntry ? 'yellow' : 'white'))
-    .attr('r', (d) => (d === hoveredEntry ? radius * enlargement : radius));
+    .attr('stroke', (d) =>
+      d === hoveredEntry ? 'yellow' : 'white'
+    )
+    .attr('r', (d) =>
+      d === hoveredEntry ? radius * enlargement : radius
+    )
+    .on('mouseenter', (d) => onMouseEnter(d))
+    .on('mouseleave', onMouseLeave);
 
   // Update the collide force to know about the hovered entry.
   simulation
@@ -77,7 +88,9 @@ const marks = ({
       'collide',
       forceCollide(
         (d) =>
-          (d === hoveredEntry ? radius * enlargement : radius) + collidePadding
+          (d === hoveredEntry
+            ? radius * enlargement
+            : radius) + collidePadding
       )
     )
     .force('charge', forceManyBody())
@@ -88,7 +101,10 @@ const marks = ({
       forceX((d) => xScale(xValue(d)))
     )
     .on('tick', () => {
-      nodes.attr('transform', (d) => `translate(${d.x},${d.y})`);
+      nodes.attr(
+        'transform',
+        (d) => `translate(${d.x},${d.y})`
+      );
     })
     .alphaTarget(hoveredEntry ? 0.01 : 0)
     .restart();
@@ -140,7 +156,15 @@ export const Marks = ({
       onMouseLeave,
       hoveredEntry,
     });
-  }, [height, data, xScale, xValue, hoveredEntry, onMouseEnter, onMouseLeave]);
+  }, [
+    height,
+    data,
+    xScale,
+    xValue,
+    hoveredEntry,
+    onMouseEnter,
+    onMouseLeave,
+  ]);
 
   return <g ref={ref} />;
 };

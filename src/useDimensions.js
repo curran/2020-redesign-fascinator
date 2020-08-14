@@ -13,7 +13,11 @@ export const useDimensions = () => {
     };
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    return () =>
+      window.removeEventListener(
+        'resize',
+        updateDimensions
+      );
   }, []);
 
   return dimensions;

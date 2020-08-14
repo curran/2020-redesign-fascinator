@@ -29,59 +29,79 @@ const main = async () => {
   let i = 1;
 
   const data = await Promise.all(
-    wordpressListing.map(
-      async ({ ID, post_title, go_live_date, thumbnail_image, post_name }) => {
-        // Load the image over the network.
-        // Docs:
-        // https://github.com/Automattic/node-canvas#loadimage
-        const image = await loadImage(thumbnail_image);
+    wordpressListing.map(async (d) => {
+      // console.log(d);
+      const {
+        ID,
+        post_title,
+        go_live_date,
+        thumbnail_image,
+        post_name,
+      } = d;
+      // Load the image over the network.
+      // Docs:
+      // https://github.com/Automattic/node-canvas#loadimage
+      const image = await loadImage(thumbnail_image);
 
-        console.log(`scraped image ${i++} of ${wordpressListing.length}.`);
+      console.log(
+        `scraped image ${i++} of ${
+          wordpressListing.length
+        }.`
+      );
 
-        // Scale down the image to fill a square,
-        // centered at the center of the original image.
-        // Draws from:
-        // https://riptutorial.com/html5-canvas/example/19169/scaling-image-to-fit-or-fill-
-        const { width, height } = image;
-        const scale = Math.max(size / width, size / height);
-        const dx = radius - (width / 2) * scale;
-        const dy = radius - (height / 2) * scale;
-        const dWidth = width * scale;
-        const dHeight = height * scale;
+      // Scale down the image to fill a square,
+      // centered at the center of the original image.
+      // Draws from:
+      // https://riptutorial.com/html5-canvas/example/19169/scaling-image-to-fit-or-fill-
+      const { width, height } = image;
+      const scale = Math.max(size / width, size / height);
+      const dx = radius - (width / 2) * scale;
+      const dy = radius - (height / 2) * scale;
+      const dWidth = width * scale;
+      const dHeight = height * scale;
 
-        // Create a Canvas and draw the image to it.
-        // Docs:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
-        const canvas = createCanvas(size, size);
-        const ctx = canvas.getContext('2d');
+      // Create a Canvas and draw the image to it.
+      // Docs:
+      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+      const canvas = createCanvas(size, size);
+      const ctx = canvas.getContext('2d');
 
-        ctx.save();
+      ctx.save();
 
-        // Mask the image with a circle.
-        // Draws from http://jsfiddle.net/jimrhoskins/dDUC3/1/
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2, false);
-        ctx.closePath();
-        ctx.clip();
+      // Mask the image with a circle.
+      // Draws from http://jsfiddle.net/jimrhoskins/dDUC3/1/
+      ctx.beginPath();
+      ctx.arc(
+        size / 2,
+        size / 2,
+        radius,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.closePath();
+      ctx.clip();
 
-        ctx.drawImage(image, dx, dy, dWidth, dHeight);
+      ctx.drawImage(image, dx, dy, dWidth, dHeight);
 
-        ctx.restore();
+      ctx.restore();
 
-        // Base64-encode the image.
-        // Docs:
-        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
-        const thumbnailDataURL = canvas.toDataURL('image/png', 0.8);
+      // Base64-encode the image.
+      // Docs:
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
+      const thumbnailDataURL = canvas.toDataURL(
+        'image/png',
+        0.8
+      );
 
-        return {
-          ID,
-          post_title,
-          go_live_date,
-          post_name,
-          thumbnailDataURL,
-        };
-      }
-    )
+      return {
+        ID,
+        post_title,
+        go_live_date,
+        post_name,
+        thumbnailDataURL,
+      };
+    })
   );
 
   const json = JSON.stringify(data);
