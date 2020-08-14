@@ -74,6 +74,9 @@
   // Distance from the bottom to the year label.
   var tickLabelYOffset = 40;
 
+  // Distance from the bottom to the title label.
+  var titleLabelYOffset = 13;
+
   // The amount by which the text is moved to the left of the line.
   var textXOffset = -29;
 
@@ -127,41 +130,59 @@
       var textFill = blackStroke ? 'none' : 'yellow';
       var textStroke = blackStroke ? 'black' : 'none';
 
+      var labels = function (d) { return [
+        {
+          text: yearFormat(xValue(d)),
+          x: d.x + textXOffset,
+          y: height - tickLabelYOffset,
+          fontSize: '26px',
+        },
+        {
+          text: hoveredEntry.post_title,
+          x: d.x + textXOffset,
+          y: height - tickLabelYOffset + titleLabelYOffset,
+          fontSize: '18px',
+        } ]; };
+
       g.selectAll('text')
-        .data(text && hoveredEntry ? [hoveredEntry] : [], key)
+        .data(
+          text && hoveredEntry ? labels(hoveredEntry) : []
+        )
         .join(
           function (enter) { return enter
               .append('text')
-              .attr('x', function (d) { return d.x + textXOffset; })
-              .attr('y', height - tickLabelYOffset)
               .attr('alignment-baseline', 'middle')
               .attr(
                 'font-family',
                 'HelveticaNeue, sans-serif'
               )
-              .attr('font-size', '26px')
+              .attr('font-size', function (d) { return d.fontSize; })
               .attr('fill', textFill)
               .attr('stroke', textStroke)
-              .attr('stroke-width', 3)
-              .text(function (d) { return yearFormat(xValue(d)); })
-              .attr('opacity', 0)
-              .call(function (enter) { return enter
-                  .transition()
-                  .delay(
-                    lineTransitionDuration -
-                      textTransitionAnticipation
-                  )
-                  .duration(textTransitionDuration)
-                  .attr('opacity', 1); }
-              ); },
-          function (update) { return update; },
-          function (exit) { return exit.call(function (exit) { return exit
+              .attr('stroke-width', 4)
+              .text(function (d) { return d.text; })
+              .attr('x', function (d) { return d.x; })
+              .attr('y', function (d) { return d.y; })
+              .attr('opacity', 0); },
+          function (update) { return update.call(function (update) { return update
                 .transition()
+                .delay(textTransitionDuration)
+                .attr('x', function (d) { return d.x; })
+                .attr('y', function (d) { return d.y; }); }
+            ); },
+          function (exit) { return exit.call(function (exit) { return exit
+                .transition('opacity')
                 .duration(textTransitionDuration)
                 .attr('opacity', 0)
                 .remove(); }
             ); }
-        );
+        )
+        .transition('opacity')
+        .delay(
+          lineTransitionDuration - textTransitionAnticipation
+        )
+        .duration(textTransitionDuration)
+        .attr('opacity', 1);
     }, [data, hoveredEntry]);
     // {text ? (
     //   <g transform={`translate(${textXOffset},0)`}>

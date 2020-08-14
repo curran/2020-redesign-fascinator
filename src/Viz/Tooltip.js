@@ -69,45 +69,65 @@ export const Tooltip = ({
     const textFill = blackStroke ? 'none' : 'yellow';
     const textStroke = blackStroke ? 'black' : 'none';
 
+    const labels = (d) => [
+      {
+        text: yearFormat(xValue(d)),
+        x: d.x + textXOffset,
+        y: height - tickLabelYOffset,
+        fontSize: '26px',
+      },
+      {
+        text: hoveredEntry.post_title,
+        x: d.x + textXOffset,
+        y: height - tickLabelYOffset + titleLabelYOffset,
+        fontSize: '18px',
+      },
+    ];
+
     g.selectAll('text')
-      .data(text && hoveredEntry ? [hoveredEntry] : [], key)
+      .data(
+        text && hoveredEntry ? labels(hoveredEntry) : []
+      )
       .join(
         (enter) =>
           enter
             .append('text')
-            .attr('x', (d) => d.x + textXOffset)
-            .attr('y', height - tickLabelYOffset)
             .attr('alignment-baseline', 'middle')
             .attr(
               'font-family',
               'HelveticaNeue, sans-serif'
             )
-            .attr('font-size', '26px')
+            .attr('font-size', (d) => d.fontSize)
             .attr('fill', textFill)
             .attr('stroke', textStroke)
-            .attr('stroke-width', 3)
-            .text((d) => yearFormat(xValue(d)))
-            .attr('opacity', 0)
-            .call((enter) =>
-              enter
-                .transition()
-                .delay(
-                  lineTransitionDuration -
-                    textTransitionAnticipation
-                )
-                .duration(textTransitionDuration)
-                .attr('opacity', 1)
-            ),
-        (update) => update,
+            .attr('stroke-width', 4)
+            .text((d) => d.text)
+            .attr('x', (d) => d.x)
+            .attr('y', (d) => d.y)
+            .attr('opacity', 0),
+        (update) =>
+          update.call((update) =>
+            update
+              .transition()
+              .delay(textTransitionDuration)
+              .attr('x', (d) => d.x)
+              .attr('y', (d) => d.y)
+          ),
         (exit) =>
           exit.call((exit) =>
             exit
-              .transition()
+              .transition('opacity')
               .duration(textTransitionDuration)
               .attr('opacity', 0)
               .remove()
           )
-      );
+      )
+      .transition('opacity')
+      .delay(
+        lineTransitionDuration - textTransitionAnticipation
+      )
+      .duration(textTransitionDuration)
+      .attr('opacity', 1);
   }, [data, hoveredEntry]);
   // {text ? (
   //   <g transform={`translate(${textXOffset},0)`}>
