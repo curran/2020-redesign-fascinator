@@ -30,17 +30,21 @@ const main = async () => {
 
   const data = await Promise.all(
     wordpressListing.map(async (d) => {
-      // console.log(d);
       const {
         ID,
         post_title,
         go_live_date,
         thumbnail_image,
         post_name,
+        work_types,
+        industries,
+        subject_matter,
+        technologies,
       } = d;
       // Load the image over the network.
       // Docs:
       // https://github.com/Automattic/node-canvas#loadimage
+
       const image = await loadImage(thumbnail_image);
 
       console.log(
@@ -100,9 +104,14 @@ const main = async () => {
         go_live_date,
         post_name,
         thumbnailDataURL,
+        work_types,
+        industries,
+        subject_matter,
+        technologies,
       };
     })
   );
+  console.log('here');
 
   const json = JSON.stringify(data);
   fs.writeFileSync(outputFile, json);

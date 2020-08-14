@@ -12,10 +12,7 @@
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
 
-  var version = '1.4.0';
-
-  var dataDir =  ("https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@" + version + "/data")
-    ;
+  var dataDir =  '/data';
 
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';
@@ -98,12 +95,21 @@
 
       g.selectAll('line')
         .data(line && hoveredEntry ? [hoveredEntry] : [])
-        .join(function (enter) { return enter
-            .append('line')
-            .attr('stroke', 'yellow')
-            .call(function (update) { return update
+        .join(
+          function (enter) { return enter
+              .append('line')
+              .attr('stroke', 'yellow')
+              .call(function (enter) { return enter
+                  .transition()
+                  .duration(1000)
+                  .attr('y2', height - tickLineYOffset); }
+              ); },
+          function (update) { return update; },
+          function (exit) { return exit.call(function (exit) { return exit
                 .transition()
-                .attr('y2', height - tickLineYOffset); }
+                .duration(1000)
+                .attr('y2', 0)
+                .remove(); }
             ); }
         );
 

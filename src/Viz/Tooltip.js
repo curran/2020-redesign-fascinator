@@ -36,14 +36,25 @@ export const Tooltip = ({
 
     g.selectAll('line')
       .data(line && hoveredEntry ? [hoveredEntry] : [])
-      .join((enter) =>
-        enter
-          .append('line')
-          .attr('stroke', 'yellow')
-          .call((update) =>
-            update
+      .join(
+        (enter) =>
+          enter
+            .append('line')
+            .attr('stroke', 'yellow')
+            .call((enter) =>
+              enter
+                .transition()
+                .duration(1000)
+                .attr('y2', height - tickLineYOffset)
+            ),
+        (update) => update,
+        (exit) =>
+          exit.call((exit) =>
+            exit
               .transition()
-              .attr('y2', height - tickLineYOffset)
+              .duration(1000)
+              .attr('y2', 0)
+              .remove()
           )
       );
 
