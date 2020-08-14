@@ -79,7 +79,7 @@ export const Tooltip = ({
       {
         text: hoveredEntry.post_title,
         x: d.x + textXOffset,
-        y: height - tickLabelYOffset + titleLabelYOffset,
+        y: height - titleLabelYOffset,
         fontSize: '18px',
       },
     ];
@@ -112,6 +112,7 @@ export const Tooltip = ({
               .delay(textTransitionDuration)
               .attr('x', (d) => d.x)
               .attr('y', (d) => d.y)
+              .text((d) => d.text)
           ),
         (exit) =>
           exit.call((exit) =>
@@ -129,23 +130,6 @@ export const Tooltip = ({
       .duration(textTransitionDuration)
       .attr('opacity', 1);
   }, [data, hoveredEntry]);
-  // {text ? (
-  //   <g transform={`translate(${textXOffset},0)`}>
-  //     <text
-  //       y={height - titleLabelYOffset}
-  //       alignmentBaseline="middle"
-  //       fontFamily="HelveticaNeue, sans-serif"
-  //       fontSize="18px"
-  //       fill={textFill}
-  //       stroke={textStroke}
-  //       strokeWidth={3}
-  //     >
-  //       {titleLabel}
-  //     </text>
-  //   </g>
-  // ) : null}
-
-  //const titleLabel = hoveredEntry.post_title;
 
   return (
     <g style={{ pointerEvents: 'none' }} ref={ref}></g>

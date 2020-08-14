@@ -140,7 +140,7 @@
         {
           text: hoveredEntry.post_title,
           x: d.x + textXOffset,
-          y: height - tickLabelYOffset + titleLabelYOffset,
+          y: height - titleLabelYOffset,
           fontSize: '18px',
         } ]; };
 
@@ -168,7 +168,8 @@
                 .transition()
                 .delay(textTransitionDuration)
                 .attr('x', function (d) { return d.x; })
-                .attr('y', function (d) { return d.y; }); }
+                .attr('y', function (d) { return d.y; })
+                .text(function (d) { return d.text; }); }
             ); },
           function (exit) { return exit.call(function (exit) { return exit
                 .transition('opacity')
@@ -184,23 +185,6 @@
         .duration(textTransitionDuration)
         .attr('opacity', 1);
     }, [data, hoveredEntry]);
-    // {text ? (
-    //   <g transform={`translate(${textXOffset},0)`}>
-    //     <text
-    //       y={height - titleLabelYOffset}
-    //       alignmentBaseline="middle"
-    //       fontFamily="HelveticaNeue, sans-serif"
-    //       fontSize="18px"
-    //       fill={textFill}
-    //       stroke={textStroke}
-    //       strokeWidth={3}
-    //     >
-    //       {titleLabel}
-    //     </text>
-    //   </g>
-    // ) : null}
-
-    //const titleLabel = hoveredEntry.post_title;
 
     return (
       React.createElement( 'g', { style: { pointerEvents: 'none' }, ref: ref })
