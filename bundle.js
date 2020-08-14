@@ -6,13 +6,13 @@
   var React__default = /*#__PURE__*/_interopDefaultLegacy(React$1);
   var ReactDOM__default = /*#__PURE__*/_interopDefaultLegacy(ReactDOM);
 
+  var version = "1.4.0";
+
   // The images generated are ${size}px by ${size}px;
   var size = 70;
 
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
-
-  var version = '1.4.0';
 
   var dataDir =  ("https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@" + version + "/data")
     ;

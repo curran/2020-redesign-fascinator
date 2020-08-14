@@ -23,6 +23,7 @@
   "license": "mit",
   "devDependencies": {
     "@rollup/plugin-buble": "^0.21.3",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.4.0",
     "buble": "^0.20.0",
     "canvas": "^2.6.1",

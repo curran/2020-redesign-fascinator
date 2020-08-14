@@ -1,4 +1,5 @@
 import buble from '@rollup/plugin-buble';
+import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default {
@@ -15,6 +16,7 @@ export default {
     },
   },
   plugins: [
+    json(),
     buble({
       objectAssign: 'Object.assign',
       transforms: { asyncAwait: false },
