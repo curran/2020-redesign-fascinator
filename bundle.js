@@ -12,7 +12,10 @@
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
 
-  var dataDir =  '/data';
+  var version = '1.4.0';
+
+  var dataDir =  ("https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@" + version + "/data")
+    ;
 
   // This is the output from running data/scrape.js.
   var dataFile = 'fascinatorData.json';

@@ -13,7 +13,8 @@ const wordpressListingURL =
 // Fetches and parses the listing from the WordPress API endpoint.
 const fetchWordpressListing = async () => {
   const response = await fetch(wordpressListingURL);
-  return await response.json();
+  const rawData = await response.json();
+  return rawData.filter((d) => d.post_status !== 'draft');
 };
 
 // Fetches all images, resizes them, encodes them to JSON, and write the output.
@@ -25,11 +26,9 @@ const main = async () => {
     wordpressListing = wordpressListing.slice(0, 2);
   }
 
-  // Count for reporting progress.
-  let i = 1;
-
-  const data = await Promise.all(
-    wordpressListing.map(async (d) => {
+  const data = await wordpressListing.reduce(
+    async (accumulatorPromise, d) => {
+      const accumulator = await accumulatorPromise;
       const {
         ID,
         post_title,
@@ -45,10 +44,18 @@ const main = async () => {
       // Docs:
       // https://github.com/Automattic/node-canvas#loadimage
 
+      if (!thumbnail_image) {
+        console.log(
+          'Ignoring entry with missing thumbnail: ' +
+            post_name
+        );
+        return accumulator;
+      }
+
       const image = await loadImage(thumbnail_image);
 
       console.log(
-        `scraped image ${i++} of ${
+        `scraped image ${accumulator.length + 1} of ${
           wordpressListing.length
         }.`
       );
@@ -98,20 +105,23 @@ const main = async () => {
         0.8
       );
 
-      return {
-        ID,
-        post_title,
-        go_live_date,
-        post_name,
-        thumbnailDataURL,
-        work_types,
-        industries,
-        subject_matter,
-        technologies,
-      };
-    })
+      return [
+        ...accumulator,
+        {
+          ID,
+          post_title,
+          go_live_date,
+          post_name,
+          thumbnailDataURL,
+          work_types,
+          industries,
+          subject_matter,
+          technologies,
+        },
+      ];
+    },
+    Promise.resolve([])
   );
-  console.log('here');
 
   const json = JSON.stringify(data);
   fs.writeFileSync(outputFile, json);
