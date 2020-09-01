@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { json, timeParse, ascending } from 'd3';
-import { isProd, version } from './constants';
+import { isProd, version, size, radius } from './constants';
 
 const dataDir = isProd
   ? `https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@${version}/data`
@@ -18,10 +18,15 @@ export const useData = () => {
     json(`${dataDir}/${dataFile}`).then((rawData) => {
       setData(
         rawData
-          .map((d) => ({
-            ...d,
-            date: parseDate(d.go_live_date),
-          }))
+          .map((d) => {
+            const rand = Math.random() + 0.5;
+            return {
+              ...d,
+              date: parseDate(d.go_live_date),
+              size: size * rand,
+              radius: radius * rand,
+            };
+          })
           .sort((a, b) => ascending(a.date, b.date))
       );
     });

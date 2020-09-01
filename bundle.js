@@ -14,6 +14,9 @@
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
 
+  var hoveredRadius = radius * 2;
+  var hoveredSize = size * 2;
+
   var dataDir =  ("https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@" + version + "/data")
     ;
 
@@ -31,8 +34,13 @@
       d3.json((dataDir + "/" + dataFile)).then(function (rawData) {
         setData(
           rawData
-            .map(function (d) { return (Object.assign({}, d,
-              {date: parseDate(d.go_live_date)})); })
+            .map(function (d) {
+              var rand = Math.random() + 0.5;
+              return Object.assign({}, d,
+                {date: parseDate(d.go_live_date),
+                size: size * rand,
+                radius: radius * rand});
+            })
             .sort(function (a, b) { return d3.ascending(a.date, b.date); })
         );
       });
@@ -193,9 +201,6 @@
     );
   };
 
-  // Factor to multiply the size by for hovered entry.
-  var enlargement = 2;
-
   // Pixels gap to leave between circles.
   var collidePadding = 3;
 
@@ -229,10 +234,19 @@
       .attr('href', function (d) { return d.thumbnailDataURL; });
     imagesUpdate
       .merge(imagesEnter)
-      .attr('x', function (d) { return -d.size / 2; })
-      .attr('y', function (d) { return -d.size / 2; })
-      .attr('height', function (d) { return d.size; })
-      .attr('width', function (d) { return d.size; });
+      .transition()
+      .attr(
+        'x',
+        function (d) { return -(d === hoveredEntry ? hoveredSize : d.size) / 2; }
+      )
+      .attr(
+        'y',
+        function (d) { return -(d === hoveredEntry ? hoveredSize : d.size) / 2; }
+      )
+      .attr('width', function (d) { return d === hoveredEntry ? hoveredSize : d.size; }
+      )
+      .attr('height', function (d) { return d === hoveredEntry ? hoveredSize : d.size; }
+      );
 
     // Each parent group contains a link that opens the work page.
     var linksUpdate = nodesUpdate.select('a');
@@ -254,23 +268,22 @@
       .attr('fill', 'none');
     circlesUpdate
       .merge(circlesEnter)
+      .on('mouseenter', function (d) { return onMouseEnter(d); })
+      .on('mouseleave', onMouseLeave)
+      .transition()
       .attr('stroke', function (d) { return d === hoveredEntry ? 'yellow' : 'white'; }
       )
-      .attr('r', function (d) { return d === hoveredEntry ? radius * enlargement : radius; }
+      .attr('stroke-width', function (d) { return d === hoveredEntry ? 2 : 1; }
       )
-      .on('mouseenter', function (d) { return onMouseEnter(d); })
-      .on('mouseleave', onMouseLeave);
+      .attr('r', function (d) { return d === hoveredEntry ? hoveredRadius : d.radius; }
+      );
 
     // Update the collide force to know about the hovered entry.
     simulation
       .nodes(data)
       .force(
         'collide',
-        d3.forceCollide(
-          function (d) { return (d === hoveredEntry
-              ? radius * enlargement
-              : radius) + collidePadding; }
-        )
+        d3.forceCollide(function (d) { return d.radius + collidePadding; })
       )
       .force('charge', d3.forceManyBody())
       .velocityDecay(0.1)
@@ -303,20 +316,15 @@
     // Compute the size of things based on the hovered entry.
     // Better to do it in one place like this instead of
     // duplicated across all logic that depends on it.
-    // 🌶️ Mutates the `size` and `radius` properties on data array elements.
     React$1.useEffect(function () {
       data.forEach(function (d) {
         // If the entry is the hovered entry,
         // make it larger and
         // fix it so it doesn't move.
         if (d === hoveredEntry) {
-          d.size = size * enlargement;
-          d.radius = radius * enlargement;
           d.fx = d.x;
           d.fy = d.y;
         } else {
-          d.size = size;
-          d.radius = size;
           d.fx = null;
           d.fy = null;
         }
