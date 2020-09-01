@@ -166,5 +166,27 @@ export const Marks = ({
     onMouseLeave,
   ]);
 
+  useEffect(() => {
+    data.forEach((d) => {
+      d.fx = 3000;
+      d.fy = height / 2;
+      d.vx = 0;
+      d.vy = 0;
+    });
+    let i = 0;
+    const revealPoint = () => {
+      data[i].fx = null;
+      data[i].fy = null;
+      i++;
+      if (i < data.length) {
+        simulation.alphaTarget(0.05);
+        setTimeout(revealPoint, 200);
+      } else {
+        simulation.alphaTarget(0.0);
+      }
+    };
+    revealPoint();
+  }, [data, height]);
+
   return <g ref={ref} />;
 };
