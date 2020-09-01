@@ -6,7 +6,7 @@
   var React__default = /*#__PURE__*/_interopDefaultLegacy(React$1);
   var ReactDOM__default = /*#__PURE__*/_interopDefaultLegacy(ReactDOM);
 
-  var version = "1.5.0";
+  var version = "1.7.0";
 
   // The images generated are ${size}px by ${size}px;
   var size = 70;
@@ -30,8 +30,10 @@
     React$1.useEffect(function () {
       d3.json((dataDir + "/" + dataFile)).then(function (rawData) {
         setData(
-          rawData.map(function (d) { return (Object.assign({}, d,
-            {date: parseDate(d.go_live_date)})); })
+          rawData
+            .map(function (d) { return (Object.assign({}, d,
+              {date: parseDate(d.go_live_date)})); })
+            .sort(function (a, b) { return d3.ascending(a.date, b.date); })
         );
       });
     }, []);
@@ -341,6 +343,28 @@
       hoveredEntry,
       onMouseEnter,
       onMouseLeave ]);
+
+    React$1.useEffect(function () {
+      data.forEach(function (d) {
+        d.fx = 3000;
+        d.fy = height / 2;
+        d.vx = 0;
+        d.vy = 0;
+      });
+      var i = 0;
+      var revealPoint = function () {
+        data[i].fx = null;
+        data[i].fy = null;
+        i++;
+        if (i < data.length) {
+          simulation.alphaTarget(0.05);
+          setTimeout(revealPoint, 200);
+        } else {
+          simulation.alphaTarget(0.0);
+        }
+      };
+      revealPoint();
+    }, [data, height]);
 
     return React.createElement( 'g', { ref: ref });
   };

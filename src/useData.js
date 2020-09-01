@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { json, timeParse } from 'd3';
+import { json, timeParse, ascending } from 'd3';
 import { isProd, version } from './constants';
 
 const dataDir = isProd
@@ -17,10 +17,12 @@ export const useData = () => {
   useEffect(() => {
     json(`${dataDir}/${dataFile}`).then((rawData) => {
       setData(
-        rawData.map((d) => ({
-          ...d,
-          date: parseDate(d.go_live_date),
-        }))
+        rawData
+          .map((d) => ({
+            ...d,
+            date: parseDate(d.go_live_date),
+          }))
+          .sort((a, b) => ascending(a.date, b.date))
       );
     });
   }, []);
