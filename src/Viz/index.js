@@ -32,6 +32,7 @@ export const Viz = ({ width, height, data }) => {
     <svg width={width} height={height}>
       <g transform={`translate(${margin.left},0)`}>
         <Tooltip
+          width={width}
           height={height}
           xValue={xValue}
           data={data}
@@ -47,6 +48,7 @@ export const Viz = ({ width, height, data }) => {
           hoveredEntry={hoveredEntry}
         />
         <Tooltip
+          width={width}
           height={height}
           xValue={xValue}
           hoveredEntry={hoveredEntry}
@@ -54,6 +56,7 @@ export const Viz = ({ width, height, data }) => {
           blackStroke
         />
         <Tooltip
+          width={width}
           height={height}
           xValue={xValue}
           hoveredEntry={hoveredEntry}

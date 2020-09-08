@@ -89,6 +89,7 @@
 
   // The amount by which the text is moved to the left of the line.
   var textXOffset = -29;
+  var textXOffsetRight = 29;
 
   // Unique ID per entry.
   var key = function (d) { return d.ID; };
@@ -107,6 +108,7 @@
   var textTransitionAnticipation = 200;
 
   var Tooltip = function (ref$1) {
+    var width = ref$1.width;
     var height = ref$1.height;
     var xValue = ref$1.xValue;
     var data = ref$1.data;
@@ -147,12 +149,17 @@
           x: d.x + textXOffset,
           y: height - tickLabelYOffset,
           fontSize: '26px',
+          textAnchor: 'start',
         },
         {
           text: hoveredEntry.post_title,
-          x: d.x + textXOffset,
+          x:
+            d.x > innerWidth / 2
+              ? d.x + textXOffsetRight
+              : d.x + textXOffset,
           y: height - titleLabelYOffset,
           fontSize: '18px',
+          textAnchor: d.x > innerWidth / 2 ? 'end' : 'start',
         } ]; };
 
       g.selectAll('text')
@@ -163,6 +170,7 @@
           function (enter) { return enter
               .append('text')
               .attr('alignment-baseline', 'middle')
+              .attr('text-anchor', function (d) { return d.textAnchor; })
               .attr(
                 'font-family',
                 'HelveticaNeue, sans-serif'
@@ -199,6 +207,7 @@
       data,
       hoveredEntry,
       blackStroke,
+      width,
       height,
       text,
       xValue ]);
@@ -419,13 +428,13 @@
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry }),
+            width: width, height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true, blackStroke: true }),
+            width: width, height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true, blackStroke: true }),
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true })
+            width: width, height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true })
         )
       )
     );
