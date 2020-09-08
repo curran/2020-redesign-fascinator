@@ -37,7 +37,6 @@ export const Tooltip = ({
   data,
   hoveredEntry,
   blackStroke,
-  line,
   text,
 }) => {
   const ref = useRef();
@@ -54,6 +53,8 @@ export const Tooltip = ({
           update
             .attr('x1', xExact)
             .attr('x2', xExact)
+            .attr('y1', (d) => d.y)
+            .attr('y2', (d) => d.y)
             .call((update) =>
               update
                 .transition()
@@ -61,7 +62,7 @@ export const Tooltip = ({
                 .attr('y2', (d) =>
                   d === hoveredEntry
                     ? height - tickLineYOffset
-                    : 0
+                    : d.y
                 )
             )
       );
@@ -129,7 +130,14 @@ export const Tooltip = ({
       )
       .duration(textTransitionDuration)
       .attr('opacity', 1);
-  }, [data, hoveredEntry]);
+  }, [
+    data,
+    hoveredEntry,
+    blackStroke,
+    height,
+    text,
+    xValue,
+  ]);
 
   return (
     <g style={{ pointerEvents: 'none' }} ref={ref}></g>

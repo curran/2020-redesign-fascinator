@@ -36,7 +36,6 @@ export const Viz = ({ width, height, data }) => {
           xValue={xValue}
           data={data}
           hoveredEntry={hoveredEntry}
-          line
         />
         <Marks
           data={data}

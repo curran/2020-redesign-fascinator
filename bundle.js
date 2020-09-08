@@ -112,7 +112,6 @@
     var data = ref$1.data;
     var hoveredEntry = ref$1.hoveredEntry;
     var blackStroke = ref$1.blackStroke;
-    var line = ref$1.line;
     var text = ref$1.text;
 
     var ref = React$1.useRef();
@@ -127,12 +126,14 @@
           function (update) { return update
               .attr('x1', xExact)
               .attr('x2', xExact)
+              .attr('y1', function (d) { return d.y; })
+              .attr('y2', function (d) { return d.y; })
               .call(function (update) { return update
                   .transition()
                   .duration(lineTransitionDuration)
                   .attr('y2', function (d) { return d === hoveredEntry
                       ? height - tickLineYOffset
-                      : 0; }
+                      : d.y; }
                   ); }
               ); }
         );
@@ -194,7 +195,13 @@
         )
         .duration(textTransitionDuration)
         .attr('opacity', 1);
-    }, [data, hoveredEntry]);
+    }, [
+      data,
+      hoveredEntry,
+      blackStroke,
+      height,
+      text,
+      xValue ]);
 
     return (
       React.createElement( 'g', { style: { pointerEvents: 'none' }, ref: ref })
@@ -412,7 +419,7 @@
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry, line: true }),
+            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
           React.createElement( Tooltip, {
