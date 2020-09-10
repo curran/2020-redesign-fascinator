@@ -6,7 +6,7 @@
   var React__default = /*#__PURE__*/_interopDefaultLegacy(React$1);
   var ReactDOM__default = /*#__PURE__*/_interopDefaultLegacy(ReactDOM);
 
-  var version = "1.7.0";
+  var version = "1.8.0";
 
   // The images generated are ${size}px by ${size}px;
   var size = 70;
