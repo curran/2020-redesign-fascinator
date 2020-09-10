@@ -1,6 +1,6 @@
 {
   "name": "2020-redesign-fascinator",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "",
   "main": "index.js",
   "//": "scripts inspired by https://github.com/rollup/rollup-starter-app/blob/master/package.json",
