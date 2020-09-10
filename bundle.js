@@ -14,6 +14,9 @@
   // Give 1 extra pixel for the stroke (so it doesn't get cut off at the edges).
   var radius = size / 2 - 2;
 
+  var hoveredRadius = radius * 2;
+  var hoveredSize = size * 2;
+
   var dataDir =  ("https://cdn.jsdelivr.net/gh/stamen/2020-redesign-fascinator@" + version + "/data")
     ;
 
@@ -31,8 +34,13 @@
       d3.json((dataDir + "/" + dataFile)).then(function (rawData) {
         setData(
           rawData
-            .map(function (d) { return (Object.assign({}, d,
-              {date: parseDate(d.go_live_date)})); })
+            .map(function (d) {
+              var rand = Math.random() + 0.5;
+              return Object.assign({}, d,
+                {date: parseDate(d.go_live_date),
+                size: size * rand,
+                radius: radius * rand});
+            })
             .sort(function (a, b) { return d3.ascending(a.date, b.date); })
         );
       });
@@ -81,6 +89,7 @@
 
   // The amount by which the text is moved to the left of the line.
   var textXOffset = -29;
+  var textXOffsetRight = 29;
 
   // Unique ID per entry.
   var key = function (d) { return d.ID; };
@@ -99,12 +108,12 @@
   var textTransitionAnticipation = 200;
 
   var Tooltip = function (ref$1) {
+    var width = ref$1.width;
     var height = ref$1.height;
     var xValue = ref$1.xValue;
     var data = ref$1.data;
     var hoveredEntry = ref$1.hoveredEntry;
     var blackStroke = ref$1.blackStroke;
-    var line = ref$1.line;
     var text = ref$1.text;
 
     var ref = React$1.useRef();
@@ -119,12 +128,14 @@
           function (update) { return update
               .attr('x1', xExact)
               .attr('x2', xExact)
+              .attr('y1', function (d) { return d.y; })
+              .attr('y2', function (d) { return d.y; })
               .call(function (update) { return update
                   .transition()
                   .duration(lineTransitionDuration)
                   .attr('y2', function (d) { return d === hoveredEntry
                       ? height - tickLineYOffset
-                      : 0; }
+                      : d.y; }
                   ); }
               ); }
         );
@@ -138,12 +149,17 @@
           x: d.x + textXOffset,
           y: height - tickLabelYOffset,
           fontSize: '26px',
+          textAnchor: 'start',
         },
         {
           text: hoveredEntry.post_title,
-          x: d.x + textXOffset,
+          x:
+            d.x > innerWidth / 2
+              ? d.x + textXOffsetRight
+              : d.x + textXOffset,
           y: height - titleLabelYOffset,
           fontSize: '18px',
+          textAnchor: d.x > innerWidth / 2 ? 'end' : 'start',
         } ]; };
 
       g.selectAll('text')
@@ -154,6 +170,7 @@
           function (enter) { return enter
               .append('text')
               .attr('alignment-baseline', 'middle')
+              .attr('text-anchor', function (d) { return d.textAnchor; })
               .attr(
                 'font-family',
                 'HelveticaNeue, sans-serif'
@@ -186,15 +203,19 @@
         )
         .duration(textTransitionDuration)
         .attr('opacity', 1);
-    }, [data, hoveredEntry]);
+    }, [
+      data,
+      hoveredEntry,
+      blackStroke,
+      width,
+      height,
+      text,
+      xValue ]);
 
     return (
       React.createElement( 'g', { style: { pointerEvents: 'none' }, ref: ref })
     );
   };
-
-  // Factor to multiply the size by for hovered entry.
-  var enlargement = 2;
 
   // Pixels gap to leave between circles.
   var collidePadding = 3;
@@ -229,10 +250,19 @@
       .attr('href', function (d) { return d.thumbnailDataURL; });
     imagesUpdate
       .merge(imagesEnter)
-      .attr('x', function (d) { return -d.size / 2; })
-      .attr('y', function (d) { return -d.size / 2; })
-      .attr('height', function (d) { return d.size; })
-      .attr('width', function (d) { return d.size; });
+      .transition()
+      .attr(
+        'x',
+        function (d) { return -(d === hoveredEntry ? hoveredSize : d.size) / 2; }
+      )
+      .attr(
+        'y',
+        function (d) { return -(d === hoveredEntry ? hoveredSize : d.size) / 2; }
+      )
+      .attr('width', function (d) { return d === hoveredEntry ? hoveredSize : d.size; }
+      )
+      .attr('height', function (d) { return d === hoveredEntry ? hoveredSize : d.size; }
+      );
 
     // Each parent group contains a link that opens the work page.
     var linksUpdate = nodesUpdate.select('a');
@@ -254,23 +284,22 @@
       .attr('fill', 'none');
     circlesUpdate
       .merge(circlesEnter)
+      .on('mouseenter', function (d) { return onMouseEnter(d); })
+      .on('mouseleave', onMouseLeave)
+      .transition()
       .attr('stroke', function (d) { return d === hoveredEntry ? 'yellow' : 'white'; }
       )
-      .attr('r', function (d) { return d === hoveredEntry ? radius * enlargement : radius; }
+      .attr('stroke-width', function (d) { return d === hoveredEntry ? 2 : 1; }
       )
-      .on('mouseenter', function (d) { return onMouseEnter(d); })
-      .on('mouseleave', onMouseLeave);
+      .attr('r', function (d) { return d === hoveredEntry ? hoveredRadius : d.radius; }
+      );
 
     // Update the collide force to know about the hovered entry.
     simulation
       .nodes(data)
       .force(
         'collide',
-        d3.forceCollide(
-          function (d) { return (d === hoveredEntry
-              ? radius * enlargement
-              : radius) + collidePadding; }
-        )
+        d3.forceCollide(function (d) { return d.radius + collidePadding; })
       )
       .force('charge', d3.forceManyBody())
       .velocityDecay(0.1)
@@ -303,20 +332,15 @@
     // Compute the size of things based on the hovered entry.
     // Better to do it in one place like this instead of
     // duplicated across all logic that depends on it.
-    // 🌶️ Mutates the `size` and `radius` properties on data array elements.
     React$1.useEffect(function () {
       data.forEach(function (d) {
         // If the entry is the hovered entry,
         // make it larger and
         // fix it so it doesn't move.
         if (d === hoveredEntry) {
-          d.size = size * enlargement;
-          d.radius = radius * enlargement;
           d.fx = d.x;
           d.fy = d.y;
         } else {
-          d.size = size;
-          d.radius = size;
           d.fx = null;
           d.fy = null;
         }
@@ -404,13 +428,13 @@
       React.createElement( 'svg', { width: width, height: height },
         React.createElement( 'g', { transform: ("translate(" + (margin.left) + ",0)") },
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry, line: true }),
+            width: width, height: height, xValue: xValue, data: data, hoveredEntry: hoveredEntry }),
           React.createElement( Marks, {
             data: data, height: height, xScale: xScale, xValue: xValue, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, hoveredEntry: hoveredEntry }),
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true, blackStroke: true }),
+            width: width, height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true, blackStroke: true }),
           React.createElement( Tooltip, {
-            height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true })
+            width: width, height: height, xValue: xValue, hoveredEntry: hoveredEntry, text: true })
         )
       )
     );

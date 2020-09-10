@@ -8,11 +8,7 @@ import {
   forceManyBody,
 } from 'd3';
 
-// Use the same size as the images, no client-side resampling.
-import { size, radius } from '../constants';
-
-// Factor to multiply the size by for hovered entry.
-const enlargement = 2;
+import { hoveredRadius, hoveredSize } from '../constants';
 
 // Pixels gap to leave between circles.
 const collidePadding = 3;
@@ -47,10 +43,23 @@ const marks = ({
     .attr('href', (d) => d.thumbnailDataURL);
   imagesUpdate
     .merge(imagesEnter)
-    .attr('x', (d) => -d.size / 2)
-    .attr('y', (d) => -d.size / 2)
-    .attr('height', (d) => d.size)
-    .attr('width', (d) => d.size);
+    .transition()
+    .attr(
+      'x',
+      (d) =>
+        -(d === hoveredEntry ? hoveredSize : d.size) / 2
+    )
+    .attr(
+      'y',
+      (d) =>
+        -(d === hoveredEntry ? hoveredSize : d.size) / 2
+    )
+    .attr('width', (d) =>
+      d === hoveredEntry ? hoveredSize : d.size
+    )
+    .attr('height', (d) =>
+      d === hoveredEntry ? hoveredSize : d.size
+    );
 
   // Each parent group contains a link that opens the work page.
   const linksUpdate = nodesUpdate.select('a');
@@ -72,26 +81,25 @@ const marks = ({
     .attr('fill', 'none');
   circlesUpdate
     .merge(circlesEnter)
+    .on('mouseenter', (d) => onMouseEnter(d))
+    .on('mouseleave', onMouseLeave)
+    .transition()
     .attr('stroke', (d) =>
       d === hoveredEntry ? 'yellow' : 'white'
     )
-    .attr('r', (d) =>
-      d === hoveredEntry ? radius * enlargement : radius
+    .attr('stroke-width', (d) =>
+      d === hoveredEntry ? 2 : 1
     )
-    .on('mouseenter', (d) => onMouseEnter(d))
-    .on('mouseleave', onMouseLeave);
+    .attr('r', (d) =>
+      d === hoveredEntry ? hoveredRadius : d.radius
+    );
 
   // Update the collide force to know about the hovered entry.
   simulation
     .nodes(data)
     .force(
       'collide',
-      forceCollide(
-        (d) =>
-          (d === hoveredEntry
-            ? radius * enlargement
-            : radius) + collidePadding
-      )
+      forceCollide((d) => d.radius + collidePadding)
     )
     .force('charge', forceManyBody())
     .velocityDecay(0.1)
@@ -124,20 +132,15 @@ export const Marks = ({
   // Compute the size of things based on the hovered entry.
   // Better to do it in one place like this instead of
   // duplicated across all logic that depends on it.
-  // 🌶️ Mutates the `size` and `radius` properties on data array elements.
   useEffect(() => {
     data.forEach((d) => {
       // If the entry is the hovered entry,
       // make it larger and
       // fix it so it doesn't move.
       if (d === hoveredEntry) {
-        d.size = size * enlargement;
-        d.radius = radius * enlargement;
         d.fx = d.x;
         d.fy = d.y;
       } else {
-        d.size = size;
-        d.radius = size;
         d.fx = null;
         d.fy = null;
       }

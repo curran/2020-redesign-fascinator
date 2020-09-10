@@ -14,6 +14,7 @@ const titleLabelYOffset = 13;
 
 // The amount by which the text is moved to the left of the line.
 const textXOffset = -29;
+const textXOffsetRight = 29;
 
 // Unique ID per entry.
 const key = (d) => d.ID;
@@ -32,12 +33,12 @@ const textTransitionDuration = 400;
 const textTransitionAnticipation = 200;
 
 export const Tooltip = ({
+  width,
   height,
   xValue,
   data,
   hoveredEntry,
   blackStroke,
-  line,
   text,
 }) => {
   const ref = useRef();
@@ -54,6 +55,8 @@ export const Tooltip = ({
           update
             .attr('x1', xExact)
             .attr('x2', xExact)
+            .attr('y1', (d) => d.y)
+            .attr('y2', (d) => d.y)
             .call((update) =>
               update
                 .transition()
@@ -61,7 +64,7 @@ export const Tooltip = ({
                 .attr('y2', (d) =>
                   d === hoveredEntry
                     ? height - tickLineYOffset
-                    : 0
+                    : d.y
                 )
             )
       );
@@ -75,12 +78,17 @@ export const Tooltip = ({
         x: d.x + textXOffset,
         y: height - tickLabelYOffset,
         fontSize: '26px',
+        textAnchor: 'start',
       },
       {
         text: hoveredEntry.post_title,
-        x: d.x + textXOffset,
+        x:
+          d.x > innerWidth / 2
+            ? d.x + textXOffsetRight
+            : d.x + textXOffset,
         y: height - titleLabelYOffset,
         fontSize: '18px',
+        textAnchor: d.x > innerWidth / 2 ? 'end' : 'start',
       },
     ];
 
@@ -93,6 +101,7 @@ export const Tooltip = ({
           enter
             .append('text')
             .attr('alignment-baseline', 'middle')
+            .attr('text-anchor', (d) => d.textAnchor)
             .attr(
               'font-family',
               'HelveticaNeue, sans-serif'
@@ -129,7 +138,15 @@ export const Tooltip = ({
       )
       .duration(textTransitionDuration)
       .attr('opacity', 1);
-  }, [data, hoveredEntry]);
+  }, [
+    data,
+    hoveredEntry,
+    blackStroke,
+    width,
+    height,
+    text,
+    xValue,
+  ]);
 
   return (
     <g style={{ pointerEvents: 'none' }} ref={ref}></g>
